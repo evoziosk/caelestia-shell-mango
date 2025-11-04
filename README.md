@@ -24,10 +24,10 @@ The original shell was designed exclusively for Hyprland, but through some caref
 
 If you'd like to buy me a beer (or coffee!) for the work on this port, here are my crypto addresses:
 
-- **Bitcoin (BTC)**: `[YOUR_BTC_ADDRESS]`
-- **Ethereum (ETH)**: `[YOUR_ETH_ADDRESS]`
-- **Monero (XMR)**: `[YOUR_XMR_ADDRESS]`
-- **Other**: `[YOUR_PREFERRED_CHAIN_ADDRESS]`
+- **Bitcoin (BTC)**: `1C1CrcRjPCYXzoXYLtCg8Zu7e1DZ4nyKDL`
+- **USDT (TRX)**: `TR4vtxKGmxYJsXQDF2sfLx8W6pztyZKWVT`
+- **Ethereum (ETH ERC20)**: `0xeb2031515c8ddacc94e5d0ceba6d22016e6de3da`
+- **BINANCE PAY ID**: `765117963`
 
 Every contribution helps keep this project maintained and supports future improvements. Thank you! 🙏
 
