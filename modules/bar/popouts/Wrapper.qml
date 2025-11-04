@@ -7,7 +7,7 @@ import qs.modules.windowinfo
 import qs.modules.controlcenter
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
+// import Quickshell.Hyprland  // Removed for MangoWC
 import QtQuick
 
 Item {
@@ -57,10 +57,13 @@ Item {
 
     Keys.onEscapePressed: close()
 
-    HyprlandFocusGrab {
-        active: root.isDetached
-        windows: [QsWindow.window]
-        onCleared: root.close()
+    // HyprlandFocusGrab - Disabled for MangoWC
+    Item {
+        property bool active: root.isDetached
+        // property var windows: [QsWindow.window]  // Not used
+        signal cleared()
+        
+        // Manual close would need to be implemented differently
     }
 
     Binding {

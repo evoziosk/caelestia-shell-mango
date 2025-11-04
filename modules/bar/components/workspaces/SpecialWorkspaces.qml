@@ -6,15 +6,15 @@ import qs.services
 import qs.utils
 import qs.config
 import Quickshell
-import Quickshell.Hyprland
+// import Quickshell.Hyprland  // Removed for MangoWC
 import QtQuick
 import QtQuick.Layouts
 
 Item {
-    id: root
+    id: root1
 
     required property ShellScreen screen
-    readonly property HyprlandMonitor monitor: Hypr.monitorFor(screen)
+    readonly property var monitor: Hypr.monitorFor(screen)
     readonly property string activeSpecial: (Config.bar.workspaces.perMonitorWorkspaces ? monitor : Hypr.focusedMonitor)?.lastIpcObject.specialWorkspace.name ?? ""
 
     layer.enabled: true
@@ -115,7 +115,7 @@ Item {
         delegate: ColumnLayout {
             id: ws
 
-            required property HyprlandWorkspace modelData
+            required property var modelData
             readonly property int size: label.Layout.preferredHeight + (hasWindows ? windows.implicitHeight + Appearance.padding.small : 0)
             property int wsId
             property string icon

@@ -41,7 +41,8 @@ CustomMouseArea {
     }
 
     function inBottomPanel(panel: Item, x: real, y: real): bool {
-        return y > root.height - Config.border.thickness - panel.height - Config.border.rounding && withinPanelWidth(panel, x, y);
+        const threshold = panel.visible ? panel.height : (Config.border.thickness + Appearance.padding.smaller);
+        return y >= root.height - threshold && withinPanelWidth(panel, x, y);
     }
 
     function onWheel(event: WheelEvent): void {
@@ -52,11 +53,29 @@ CustomMouseArea {
 
     anchors.fill: parent
     hoverEnabled: true
+    propagateComposedEvents: true
 
-    onPressed: event => dragStart = Qt.point(event.x, event.y)
+    onPressed: event => {
+        dragStart = Qt.point(event.x, event.y);
+
+        const x = event.x;
+        const y = event.y;
+
+        const interactingWithBar = x < bar.implicitWidth;
+        const interactingWithVisiblePanel = (visibilities.launcher && inBottomPanel(panels.launcher, x, y)) ||
+                                            (visibilities.utilities && inBottomPanel(panels.utilities, x, y)) ||
+                                            (visibilities.dashboard && inTopPanel(panels.dashboard, x, y)) ||
+                                            (visibilities.session && inRightPanel(panels.session, x, y)) ||
+                                            (visibilities.sidebar && inRightPanel(panels.sidebar, x, y)) ||
+                                            (visibilities.osd && inRightPanel(panels.osd, x, y));
+
+        // If we are not interacting with any visible shell surface, let the click pass to the underlying window
+        if (!interactingWithBar && !interactingWithVisiblePanel)
+            event.accepted = false;
+    }
     onContainsMouseChanged: {
         if (!containsMouse) {
-            // Only hide if not activated by shortcut
+            // Mouse left the input region - hide panels if not in shortcut mode
             if (!osdShortcutActive) {
                 visibilities.osd = false;
                 root.panels.osd.hovered = false;
@@ -204,6 +223,11 @@ CustomMouseArea {
         } else if ((!popouts.currentName.startsWith("traymenu") || (popouts.current?.depth ?? 0) <= 1) && !inLeftPanel(panels.popouts, x, y)) {
             popouts.hasCurrent = false;
             bar.closeTray();
+        }
+
+        // Hide bar if mouse moves away
+        if (Config.bar.showOnHover && x >= bar.implicitWidth) {
+            bar.isHovered = false;
         }
     }
 

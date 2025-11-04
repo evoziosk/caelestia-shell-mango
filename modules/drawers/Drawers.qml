@@ -7,7 +7,7 @@ import qs.config
 import qs.modules.bar
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
+// import Quickshell.Hyprland  // Removed for MangoWC
 import QtQuick
 import QtQuick.Effects
 
@@ -29,13 +29,16 @@ Variants {
 
             readonly property bool hasFullscreen: Hypr.monitorFor(screen)?.activeWorkspace?.toplevels.values.some(t => t.lastIpcObject.fullscreen === 2) ?? false
             readonly property int dragMaskPadding: {
+                // Always return 0 when panels are open or focus is active
                 if (focusGrab.active || panels.popouts.isDetached)
                     return 0;
 
+                // Always return 0 when there are windows (we'll rely on panel regions for hover)
                 const mon = Hypr.monitorFor(screen);
                 if (mon?.lastIpcObject.specialWorkspace.name || mon?.activeWorkspace?.lastIpcObject.windows > 0)
                     return 0;
 
+                // When workspace is empty, use drag thresholds for hover activation
                 const thresholds = [];
                 for (const panel of ["dashboard", "launcher", "session", "sidebar"])
                     if (Config[panel].enabled)
@@ -55,13 +58,30 @@ Variants {
             WlrLayershell.keyboardFocus: visibilities.launcher || visibilities.session ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
             mask: Region {
-                x: bar.implicitWidth + win.dragMaskPadding
-                y: Config.border.thickness + win.dragMaskPadding
-                width: win.width - bar.implicitWidth - Config.border.thickness - win.dragMaskPadding * 2
-                height: win.height - Config.border.thickness * 2 - win.dragMaskPadding * 2
+                // Capture bar + minimal edge strips for hover
+                x: bar.implicitWidth
+                y: Config.border.thickness  
+                width: win.width - bar.implicitWidth - Config.border.thickness
+                height: win.height - Config.border.thickness * 2
                 intersection: Intersection.Xor
 
-                regions: regions.instances
+                regions: panelRegions.instances
+            }
+
+            Variants {
+                id: panelRegions
+
+                model: panels.children
+
+                Region {
+                    required property Item modelData
+
+                    x: bar.implicitWidth + modelData.x
+                    y: Config.border.thickness + modelData.y
+                    width: modelData.visible ? Math.max(0, modelData.width) : 0
+                    height: modelData.visible ? Math.max(0, modelData.height) : 0
+                    intersection: Intersection.Subtract
+                }
             }
 
             anchors.top: true
@@ -69,35 +89,14 @@ Variants {
             anchors.left: true
             anchors.right: true
 
-            Variants {
-                id: regions
-
-                model: panels.children
-
-                Region {
-                    required property Item modelData
-
-                    x: modelData.x + bar.implicitWidth
-                    y: modelData.y + Config.border.thickness
-                    width: modelData.width
-                    height: modelData.height
-                    intersection: Intersection.Subtract
-                }
-            }
-
-            HyprlandFocusGrab {
+            Item {
                 id: focusGrab
 
-                active: (visibilities.launcher && Config.launcher.enabled) || (visibilities.session && Config.session.enabled) || (visibilities.sidebar && Config.sidebar.enabled) || (!Config.dashboard.showOnHover && visibilities.dashboard && Config.dashboard.enabled) || (panels.popouts.currentName.startsWith("traymenu") && panels.popouts.current?.depth > 1)
-                windows: [win]
-                onCleared: {
-                    visibilities.launcher = false;
-                    visibilities.session = false;
-                    visibilities.sidebar = false;
-                    visibilities.dashboard = false;
-                    panels.popouts.hasCurrent = false;
-                    bar.closeTray();
-                }
+                property bool active: (visibilities.launcher && Config.launcher.enabled) || (visibilities.session && Config.session.enabled) || (visibilities.sidebar && Config.sidebar.enabled) || (!Config.dashboard.showOnHover && visibilities.dashboard && Config.dashboard.enabled) || (panels.popouts.currentName.startsWith("traymenu") && panels.popouts.current?.depth > 1)
+                // property var windows: [win]  // Not used in MangoWC
+                signal cleared()
+                
+                // Manual close on click outside would need to be implemented differently for MangoWC
             }
 
             StyledRect {
@@ -113,12 +112,7 @@ Variants {
             Item {
                 anchors.fill: parent
                 opacity: Colours.transparency.enabled ? Colours.transparency.base : 1
-                layer.enabled: true
-                layer.effect: MultiEffect {
-                    shadowEnabled: true
-                    blurMax: 15
-                    shadowColor: Qt.alpha(Colours.palette.m3shadow, 0.7)
-                }
+                layer.enabled: false  // Disable blur effect for crisp panels
 
                 Border {
                     bar: bar

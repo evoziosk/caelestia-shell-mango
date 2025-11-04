@@ -5,7 +5,7 @@ import qs.services
 import qs.config
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Hyprland
+// import Quickshell.Hyprland  // Removed for MangoWC
 import QtQuick
 import QtQuick.Layouts
 
@@ -13,10 +13,11 @@ Item {
     id: root
 
     required property ShellScreen screen
-    required property HyprlandToplevel client
+    required property var client  // Changed from HyprlandToplevel
 
-    Layout.preferredWidth: preview.implicitWidth + Appearance.padding.large * 2
+    Layout.preferredWidth: 0
     Layout.fillHeight: true
+    visible: false  // Hide preview - requires xdg-desktop-portal-wlr setup
 
     StyledClippingRect {
         id: preview

@@ -20,18 +20,20 @@ Item {
 
         IdleInhibit {}
 
-        Record {
-            props: root.props
-            visibilities: root.visibilities
-            z: 1
-        }
+        // Record card hidden for MangoWC (gpu-screen-recorder not working)
+        // Record {
+        //     props: root.props
+        //     visibilities: root.visibilities
+        //     z: 1
+        // }
 
         Toggles {
             visibilities: root.visibilities
         }
     }
 
-    RecordingDeleteModal {
-        props: root.props
-    }
+    // RecordingDeleteModal hidden for MangoWC
+    // RecordingDeleteModal {
+    //     props: root.props
+    // }
 }

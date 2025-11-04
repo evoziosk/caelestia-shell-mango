@@ -1,14 +1,14 @@
 import qs.components
 import qs.services
 import qs.config
-import Quickshell.Hyprland
+// import Quickshell.Hyprland  // Removed for MangoWC
 import QtQuick
 import QtQuick.Layouts
 
 ColumnLayout {
     id: root
 
-    required property HyprlandToplevel client
+    required property var client  // Changed from HyprlandToplevel
 
     anchors.fill: parent
     spacing: Appearance.spacing.small

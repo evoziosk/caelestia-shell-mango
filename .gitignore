@@ -3,3 +3,22 @@
 /.qmlls.ini
 build/
 .cache/
+
+# Personal development notes and temporary files
+CHANGES.txt
+FIXES_APPLIED.md
+MANGOWC_COMPLETE.md
+MANGOWC_CRITICAL_UPDATE.md
+MANGOWC_FINAL_STATUS.md
+MANGOWC_MIGRATION.md
+MANGOWC_SUCCESS.md
+test-mangowc-ipc.sh
+*.backup
+*-backup
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

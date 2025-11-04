@@ -1,4 +1,4 @@
-<h1 align=center>caelestia-shell</h1>
+<h1 align=center>caelestia-shell (MangoWC Port)</h1>
 
 <div align=center>
 
@@ -11,70 +11,94 @@
 
 https://github.com/user-attachments/assets/0840f496-575c-4ca6-83a8-87bb01a85c5f
 
+## About This Fork
+
+This is a community port of the beautiful Caelestia shell to work with **MangoWC compositor** instead of Hyprland! 🎉
+
+The original shell was designed exclusively for Hyprland, but through some careful adaptation, it now runs smoothly on MangoWC while maintaining all the core functionality and gorgeous aesthetics that make Caelestia special.
+
+**This is a personal project** that I'm actively maintaining and improving. If you find this port useful and want to support continued development and maintenance, I'd be grateful for any contributions! Beer money is always appreciated 🍺
+
+<details>
+<summary>Support via Cryptocurrency</summary>
+
+If you'd like to buy me a beer (or coffee!) for the work on this port, here are my crypto addresses:
+
+- **Bitcoin (BTC)**: `[YOUR_BTC_ADDRESS]`
+- **Ethereum (ETH)**: `[YOUR_ETH_ADDRESS]`
+- **Monero (XMR)**: `[YOUR_XMR_ADDRESS]`
+- **Other**: `[YOUR_PREFERRED_CHAIN_ADDRESS]`
+
+Every contribution helps keep this project maintained and supports future improvements. Thank you! 🙏
+
+</details>
+
+### What Changed?
+
+- **MangoWC Integration**: Complete rewrite of the compositor backend to use MangoWC's `mmsg` IPC instead of Hyprland's socket protocol
+- **Window Management**: Replaced Hyprland's native window tracking with Wayland's `ToplevelManager` protocol for workspace and window information
+- **Input Masking**: Carefully tuned Region-based input masks to maintain click-through transparency on the desktop while keeping panels and bars interactive
+- **Blur Control**: Disabled blur effects for crisp rendering with MangoWC's layer shell
+- **Feature Adaptation**: Disabled features that rely on Hyprland-specific protocols (like screencopy-based window previews and gpu-screen-recorder integration)
+
+### What Still Works?
+
+Pretty much everything! 🚀
+
+- ✅ All panels (bar, dashboard, utilities, OSD, sidebar)
+- ✅ Hover detection and auto-hide behaviors
+- ✅ Workspaces and window tracking
+- ✅ Media controls (MPRIS)
+- ✅ Network, battery, brightness, audio controls
+- ✅ Launcher with app search
+- ✅ Notification system
+- ✅ Lock screen
+- ✅ System tray
+- ✅ Wallpaper management
+- ✅ Color scheme switching
+
+### What Doesn't Work (Yet)?
+
+- ❌ Window preview thumbnails (MangoWC's screencopy protocol needs work)
+- ❌ Screen recording feature (gpu-screen-recorder configuration needs adaptation)
+
 ## Components
 
 -   Widgets: [`Quickshell`](https://quickshell.outfoxxed.me)
--   Window manager: [`Hyprland`](https://hyprland.org)
--   Dots: [`caelestia`](https://github.com/caelestia-dots)
+-   Compositor: [`MangoWC`](https://github.com/jvl-13/MangoWC) (originally [`Hyprland`](https://hyprland.org))
+-   Original Dots: [`caelestia`](https://github.com/caelestia-dots)
+
+## Special Thanks
+
+**Huge shoutout and massive thanks to [@Soramane](https://github.com/soramane)** and the entire Caelestia project for creating such an incredible, polished, and beautiful shell! This port wouldn't exist without their amazing work. If you love this shell, please consider [supporting them on Ko-Fi](https://ko-fi.com/soramane)! 💙
+
+Also huge thanks to:
+- [@outfoxxed](https://github.com/outfoxxed) for creating and maintaining Quickshell
+- The MangoWC developers for building a solid wlroots compositor
+- The Hyprland discord community for ongoing inspiration and help
 
 ## Installation
 
-> [!NOTE]
-> This repo is for the desktop shell of the caelestia dots. If you want installation instructions
-> for the entire dots, head to [the main repo](https://github.com/caelestia-dots/caelestia) instead.
+> [!IMPORTANT]
+> This MangoWC port requires manual installation. The AUR package and Nix flake from the original project are **not compatible** with this fork as they're designed for Hyprland.
 
-### Arch linux
+### Prerequisites for MangoWC
 
-> [!NOTE]
-> If you want to make your own changes/tweaks to the shell do NOT edit the files installed by the AUR
-> package. Instead, follow the instructions in the [manual installation section](#manual-installation).
+Before installing the shell, make sure you have MangoWC properly set up:
 
-The shell is available from the AUR as `caelestia-shell`. You can install it with an AUR helper
-like [`yay`](https://github.com/Jguer/yay) or manually downloading the PKGBUILD and running `makepkg -si`.
+1. **MangoWC Compositor**: Install and configure MangoWC ([GitHub repo](https://github.com/jvl-13/MangoWC))
+2. **MangoWC Layer Rules**: Add these to your `~/.config/mango/rule.conf` to disable blur on shell surfaces:
+   ```
+   noblur:1 caelestia
+   ```
 
-A package following the latest commit also exists as `caelestia-shell-git`. This is bleeding edge
-and likely to be unstable/have bugs. Regular users are recommended to use the stable package
-(`caelestia-shell`).
-
-### Nix
-
-You can run the shell directly via `nix run`:
-
-```sh
-nix run github:caelestia-dots/shell
-```
-
-Or add it to your system configuration:
-
-```nix
-{
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-
-    caelestia-shell = {
-      url = "github:caelestia-dots/shell";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-  };
-}
-```
-
-The package is available as `caelestia-shell.packages.<system>.default`, which can be added to your
-`environment.systemPackages`, `users.users.<username>.packages`, `home.packages` if using home-manager,
-or a devshell. The shell can then be run via `caelestia-shell`.
-
-> [!TIP]
-> The default package does not have the CLI enabled by default, which is required for full funcionality.
-> To enable the CLI, use the `with-cli` package.
-
-For home-manager, you can also use the Caelestia's home manager module (explained in [configuring](https://github.com/caelestia-dots/shell?tab=readme-ov-file#home-manager-module)) that installs and configures the shell and the CLI.
-
-### Manual installation
+### Manual Installation (MangoWC)
 
 Dependencies:
 
--   [`caelestia-cli`](https://github.com/caelestia-dots/cli)
--   [`quickshell-git`](https://quickshell.outfoxxed.me) - this has to be the git version, not the latest tagged version
+-   [`caelestia-cli`](https://github.com/caelestia-dots/cli) (optional but recommended)
+-   [`quickshell-git`](https://quickshell.outfoxxed.me) - **must be the git version**, not the latest tagged version
+-   `mangowc` - The MangoWC compositor with `mmsg` IPC support
 -   [`ddcutil`](https://github.com/rockowitz/ddcutil)
 -   [`brightnessctl`](https://github.com/Hummer12007/brightnessctl)
 -   [`app2unit`](https://github.com/Vladimir-csp/app2unit)
@@ -100,18 +124,20 @@ Build dependencies:
 -   [`cmake`](https://cmake.org)
 -   [`ninja`](https://github.com/ninja-build/ninja)
 
-To install the shell manually, install all dependencies and clone this repo to `$XDG_CONFIG_HOME/quickshell/caelestia`.
-Then simply build and install using `cmake`.
+To install the shell manually, install all dependencies and clone this repo (or your fork). Then build and install using `cmake`.
 
 ```sh
-cd $XDG_CONFIG_HOME/quickshell
-git clone https://github.com/caelestia-dots/shell.git caelestia
-
+# Clone the repository
+git clone https://github.com/YOUR-USERNAME/caelestia.git
 cd caelestia
+
+# Build and install
 cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/
 cmake --build build
 sudo cmake --install build
 ```
+
+This will install the shell to `/etc/xdg/quickshell/caelestia` systemwide.
 
 > [!TIP]
 > You can customise the installation location via the `cmake` flags `INSTALL_LIBDIR`, `INSTALL_QMLDIR` and
@@ -131,18 +157,47 @@ sudo cmake --install build
 
 ## Usage
 
-The shell can be started via the `caelestia shell -d` command or `qs -c caelestia`.
-If the entire caelestia dots are installed, the shell will be autostarted on login
-via an `exec-once` in the hyprland config.
+The shell can be started via `qs -c caelestia` or by launching Quickshell with the config path.
+
+### Starting with MangoWC
+
+To autostart the shell with MangoWC, add this to your MangoWC config:
+
+```
+exec-once = qs -c caelestia
+```
+
+Or if using caelestia-cli:
+
+```
+exec-once = caelestia shell -d
+```
 
 ### Shortcuts/IPC
 
-All keybinds are accessible via Hyprland [global shortcuts](https://wiki.hyprland.org/Configuring/Binds/#dbus-global-shortcuts).
-If using the entire caelestia dots, the keybinds are already configured for you.
-Otherwise, [this file](https://github.com/caelestia-dots/caelestia/blob/main/hypr/hyprland/keybinds.conf#L1-L39)
-contains an example on how to use global shortcuts.
+> [!NOTE]
+> MangoWC doesn't support Hyprland's global shortcuts via DBus. You'll need to configure keybinds directly in your MangoWC config using `mmsg` commands or by invoking the caelestia CLI.
 
-All IPC commands can be accessed via `caelestia shell ...`. For example
+Example MangoWC keybinds for common shell functions:
+
+```
+# Toggle launcher
+bind = SUPER, SPACE, exec, caelestia shell drawers toggle launcher
+
+# Toggle dashboard
+bind = SUPER, D, exec, caelestia shell drawers toggle dashboard
+
+# Toggle utilities
+bind = SUPER, U, exec, caelestia shell drawers toggle utilities
+
+# Lock screen
+bind = SUPER, L, exec, caelestia shell lock lock
+
+# Screenshot picker
+bind = , PRINT, exec, caelestia shell picker open
+```
+
+All IPC commands can be accessed via `caelestia shell ...` if you have caelestia-cli installed. For example:
 
 ```sh
 caelestia shell mpris getActive trackTitle
@@ -192,14 +247,16 @@ the command.
 
 ## Updating
 
-If installed via the AUR package, simply update your system (e.g. using `yay`).
-
-If installed manually, you can update by running `git pull` in `$XDG_CONFIG_HOME/quickshell/caelestia`.
+To update your installation, pull the latest changes and rebuild:
 
 ```sh
-cd $XDG_CONFIG_HOME/quickshell/caelestia
+cd /path/to/caelestia
 git pull
+cmake --build build
+sudo cmake --install build
 ```
+
+Then restart Quickshell to load the updated shell.
 
 ## Configuring
 
@@ -650,24 +707,29 @@ The module automatically adds Caelestia shell to the path with **full functional
 
 ## FAQ
 
-### My screen is flickering, help pls!
+### Why MangoWC instead of Hyprland?
 
-Try disabling VRR in the hyprland config. You can do this by adding the following to `~/.config/caelestia/hypr-user.conf`:
+Great question! Some folks prefer MangoWC's wlroots-based approach, simpler architecture, or just want to try something different. This port makes Caelestia accessible to the MangoWC community while keeping all the beautiful design intact.
 
-```conf
-misc {
-    vrr = 0
-}
-```
+### Can I use this with Hyprland?
 
-### I want to make my own changes to the hyprland config!
+Nope! This fork is specifically adapted for MangoWC. If you want to use Hyprland, grab the [original Caelestia shell](https://github.com/caelestia-dots/shell) instead - it's fantastic!
 
-You can add your custom hyprland configs to `~/.config/caelestia/hypr-user.conf`.
+### Window previews don't work!
 
-### I want to make my own changes to other stuff!
+Yeah, that's a known limitation. MangoWC's screencopy protocol implementation needs more work before window previews can function properly. The window info panel is still there, just without thumbnails.
 
-See the [manual installation](https://github.com/caelestia-dots/shell?tab=readme-ov-file#manual-installation) section
-for the corresponding repo.
+### Screen recording button is missing!
+
+I've disabled the screen recording feature since gpu-screen-recorder configuration for MangoWC needs adaptation. This might come in a future update!
+
+### My screen is flickering!
+
+Try tweaking MangoWC's refresh rate settings or disabling any compositor effects that might conflict with the shell's layer surfaces.
+
+### I want to make my own changes!
+
+The shell is installed to `/etc/xdg/quickshell/caelestia`. You can edit these files directly (you'll need sudo access) or copy the entire directory to `~/.config/quickshell/caelestia` for user-specific modifications. Quickshell will prefer the user config if it exists.
 
 ### I want to disable XXX feature!
 
@@ -676,13 +738,14 @@ If there is no corresponding option, make feature request.
 
 ### How do I make my colour scheme change with my wallpaper?
 
-Set a wallpaper via the launcher or `caelestia wallpaper` and set the scheme to the dynamic scheme via the launcher
-or `caelestia scheme set`. e.g.
+Set a wallpaper via the launcher and set the scheme to the dynamic scheme. If you have caelestia-cli installed:
 
 ```sh
 caelestia wallpaper -f <path/to/file>
 caelestia scheme set -n dynamic
 ```
+
+Without caelestia-cli, you can use the launcher (Super + Space) to search for wallpapers and schemes!
 
 ### My wallpapers aren't showing up in the launcher!
 
@@ -690,20 +753,32 @@ The launcher pulls wallpapers from `~/Pictures/Wallpapers` by default. You can c
 the launcher only shows an odd number of wallpapers at one time. If you only have 2 wallpapers, consider getting more
 (or just putting one).
 
-## Credits
+## Credits & Appreciation
 
-Thanks to the Hyprland discord community (especially the homies in #rice-discussion) for all the help and suggestions
-for improving these dots!
+### The Real MVPs
 
-A special thanks to [@outfoxxed](https://github.com/outfoxxed) for making Quickshell and the effort put into fixing issues
-and implementing various feature requests.
+**MASSIVE thanks to [@Soramane](https://github.com/soramane)** for creating the original Caelestia shell! This project is absolutely stunning, and it's been an honor to adapt it for MangoWC. Seriously, if you appreciate this work, go [support them on Ko-Fi](https://ko-fi.com/soramane) - they deserve all the love! ❤️
 
-Another special thanks to [@end_4](https://github.com/end-4) for his [config](https://github.com/end-4/dots-hyprland)
-which helped me a lot with learning how to use Quickshell.
+The entire [Caelestia project](https://github.com/caelestia-dots) is a masterclass in design and polish. Check out their work!
 
-Finally another thank you to all the configs I took inspiration from (only one for now):
+### Technology & Community
 
+Huge thanks to:
+
+- **[@outfoxxed](https://github.com/outfoxxed)** for creating and maintaining [Quickshell](https://quickshell.outfoxxed.me), and for patiently implementing features and fixing bugs that make projects like this possible
+- **The MangoWC developers** for building a solid wlroots-based compositor
+- **[@end_4](https://github.com/end-4)** for their [config](https://github.com/end-4/dots-hyprland) which served as inspiration for the original Caelestia
+- **The Hyprland discord community** (especially the homies in #rice-discussion) for all the help, feedback, and ongoing inspiration
+
+### Original Inspirations
+
+The original Caelestia shell took inspiration from:
 -   [Axenide/Ax-Shell](https://github.com/Axenide/Ax-Shell)
+
+---
+
+> [!NOTE]
+> This MangoWC port is a community effort and is **not officially affiliated** with the Caelestia project. For the original, Hyprland-optimized version, please visit [caelestia-dots/shell](https://github.com/caelestia-dots/shell).
 
 ## Stonks 📈
 
