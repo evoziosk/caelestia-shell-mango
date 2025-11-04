@@ -13,6 +13,8 @@ ColumnLayout {
     id: root
 
     property string connectingToSsid: ""
+    property string passwordDialogSsid: ""
+    property bool showPasswordDialog: false
 
     spacing: Appearance.spacing.small
     width: Config.bar.sizes.networkWidth
@@ -117,8 +119,14 @@ ColumnLayout {
                         if (networkItem.modelData.active) {
                             Network.disconnectFromNetwork();
                         } else {
-                            root.connectingToSsid = networkItem.modelData.ssid;
-                            Network.connectToNetwork(networkItem.modelData.ssid, "");
+                            // Show password dialog for secure networks, connect directly for open networks
+                            if (networkItem.modelData.isSecure) {
+                                root.passwordDialogSsid = networkItem.modelData.ssid;
+                                root.showPasswordDialog = true;
+                            } else {
+                                root.connectingToSsid = networkItem.modelData.ssid;
+                                Network.connectToNetwork(networkItem.modelData.ssid, "");
+                            }
                         }
                     }
                 }
@@ -205,6 +213,102 @@ ColumnLayout {
         function onScanningChanged(): void {
             if (!Network.scanning)
                 scanIcon.rotation = 0;
+        }
+    }
+
+    // Password dialog overlay
+    StyledRect {
+        Layout.fillWidth: true
+        Layout.topMargin: Appearance.spacing.normal
+        implicitHeight: passwordColumn.implicitHeight + Appearance.padding.normal * 2
+        visible: root.showPasswordDialog
+        radius: Appearance.rounding.normal
+        color: Colours.palette.m3surfaceContainerHighest
+
+        ColumnLayout {
+            id: passwordColumn
+
+            anchors.fill: parent
+            anchors.margins: Appearance.padding.normal
+            spacing: Appearance.spacing.normal
+
+            StyledText {
+                text: qsTr("Enter password for \"%1\"").arg(root.passwordDialogSsid)
+                font.weight: 500
+                wrapMode: Text.WordWrap
+                Layout.fillWidth: true
+            }
+
+            StyledTextField {
+                id: passwordField
+
+                Layout.fillWidth: true
+                placeholderText: qsTr("Password")
+                echoMode: TextInput.Password
+
+                onAccepted: {
+                    root.connectingToSsid = root.passwordDialogSsid;
+                    Network.connectToNetwork(root.passwordDialogSsid, text);
+                    root.showPasswordDialog = false;
+                    text = "";
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Appearance.spacing.small
+
+                StyledRect {
+                    Layout.fillWidth: true
+                    implicitHeight: cancelText.implicitHeight + Appearance.padding.small * 2
+                    radius: Appearance.rounding.small
+                    color: Colours.palette.m3surfaceContainerHigh
+
+                    StateLayer {
+                        color: Colours.palette.m3onSurface
+
+                        function onClicked(): void {
+                            root.showPasswordDialog = false;
+                            passwordField.text = "";
+                        }
+                    }
+
+                    StyledText {
+                        id: cancelText
+
+                        anchors.centerIn: parent
+                        text: qsTr("Cancel")
+                        color: Colours.palette.m3onSurface
+                    }
+                }
+
+                StyledRect {
+                    Layout.fillWidth: true
+                    implicitHeight: connectText.implicitHeight + Appearance.padding.small * 2
+                    radius: Appearance.rounding.small
+                    color: Colours.palette.m3primary
+
+                    StateLayer {
+                        color: Colours.palette.m3onPrimary
+
+                        function onClicked(): void {
+                            root.connectingToSsid = root.passwordDialogSsid;
+                            Network.connectToNetwork(root.passwordDialogSsid, passwordField.text);
+                            root.showPasswordDialog = false;
+                            passwordField.text = "";
+                        }
+                    }
+
+                    StyledText {
+                        id: connectText
+
+                        anchors.centerIn: parent
+                        text: qsTr("Connect")
+                        color: Colours.palette.m3onPrimary
+                        font.weight: 500
+                    }
+                }
+            }
         }
     }
 
