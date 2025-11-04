@@ -225,6 +225,12 @@ ColumnLayout {
         radius: Appearance.rounding.normal
         color: Colours.palette.m3surfaceContainerHighest
 
+        onVisibleChanged: {
+            if (visible) {
+                passwordField.forceActiveFocus();
+            }
+        }
+
         ColumnLayout {
             id: passwordColumn
 
@@ -245,6 +251,13 @@ ColumnLayout {
                 Layout.fillWidth: true
                 placeholderText: qsTr("Password")
                 echoMode: TextInput.Password
+                focus: root.showPasswordDialog
+
+                Component.onCompleted: {
+                    if (root.showPasswordDialog) {
+                        forceActiveFocus();
+                    }
+                }
 
                 onAccepted: {
                     root.connectingToSsid = root.passwordDialogSsid;
