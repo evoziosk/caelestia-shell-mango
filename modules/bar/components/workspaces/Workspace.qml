@@ -88,7 +88,19 @@ ColumnLayout {
 
             Repeater {
                 model: ScriptModel {
-                    values: (Hypr.toplevels?.values || []).filter(c => c.workspace?.id === root.ws)
+                    values: {
+                        const toplevels = Hypr.toplevels?.values;
+                        if (!toplevels) return [];
+                        // Convert UntypedObjectModel to array
+                        const arr = [];
+                        for (let i = 0; i < toplevels.length; i++) {
+                            const tl = toplevels[i];
+                            if (tl.workspace?.id === root.ws) {
+                                arr.push(tl);
+                            }
+                        }
+                        return arr;
+                    }
                 }
 
                 MaterialIcon {

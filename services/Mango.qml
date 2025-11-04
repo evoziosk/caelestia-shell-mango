@@ -34,24 +34,24 @@ Singleton {
         readonly property var workspace: focusedWorkspace
         readonly property var monitor: focusedMonitor
         
-        readonly property QtObject lastIpcObject: QtObject {
-            readonly property string title: ToplevelManager.activeToplevel?.title ?? ""
-            readonly property string initialTitle: ToplevelManager.activeToplevel?.title ?? ""
-            readonly property string initialClass: ToplevelManager.activeToplevel?.appId ?? ""
-            readonly property bool floating: focusedClientFloating
-            readonly property int fullscreen: focusedClientFullscreen ? 2 : 0
-            readonly property var at: [focusedClientX, focusedClientY]
-            readonly property var size: [focusedClientWidth, focusedClientHeight]
-            readonly property var workspace: ({ "id": activeTagNumber, "name": `tag ${activeTagNumber}` })
-            readonly property string address: "0x0"
-            readonly property int pid: -1
-            readonly property bool xwayland: false
-            readonly property bool pinned: false
-            
-            // Set 'class' dynamically since it's a reserved keyword
-            Component.onCompleted: {
-                this["class"] = Qt.binding(() => ToplevelManager.activeToplevel?.appId ?? "");
-            }
+        readonly property var lastIpcObject: {
+            const obj = {
+                title: ToplevelManager.activeToplevel?.title ?? "",
+                initialTitle: ToplevelManager.activeToplevel?.title ?? "",
+                initialClass: ToplevelManager.activeToplevel?.appId ?? "",
+                floating: focusedClientFloating,
+                fullscreen: focusedClientFullscreen ? 2 : 0,
+                at: [focusedClientX, focusedClientY],
+                size: [focusedClientWidth, focusedClientHeight],
+                workspace: { "id": activeTagNumber, "name": `tag ${activeTagNumber}` },
+                address: "0x0",
+                pid: -1,
+                xwayland: false,
+                pinned: false
+            };
+            // Set 'class' property (reserved keyword)
+            obj["class"] = ToplevelManager.activeToplevel?.appId ?? "";
+            return obj;
         }
     }
 

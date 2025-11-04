@@ -224,7 +224,7 @@ Item {
                 label.animate: true
                 toggle: true
                 padding: Appearance.padding.small / 2
-                checked: Players.active?.isPlaying
+                checked: Players.active?.isPlaying ?? false
                 font.pointSize: Math.round(Appearance.font.size.large * 1.5)
                 disabled: !Players.active?.canTogglePlaying
                 onClicked: Players.active?.togglePlaying()
