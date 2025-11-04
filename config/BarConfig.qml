@@ -86,7 +86,7 @@ JsonObject {
     }
 
     component Status: JsonObject {
-        property bool showAudio: false
+        property bool showAudio: true  // Enable audio device switcher
         property bool showMicrophone: false
         property bool showKbLayout: false
         property bool showNetwork: true
