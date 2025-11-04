@@ -72,38 +72,6 @@ Item {
             }
         }
 
-        StyledText {
-            Layout.topMargin: Appearance.spacing.smaller
-            Layout.bottomMargin: -Appearance.spacing.small / 2
-            text: qsTr("Volume (%1)").arg(Audio.muted ? qsTr("Muted") : `${Math.round(Audio.volume * 100)}%`)
-            font.weight: 500
-        }
-
-        CustomMouseArea {
-            Layout.fillWidth: true
-            implicitHeight: Appearance.padding.normal * 3
-
-            onWheel: event => {
-                if (event.angleDelta.y > 0)
-                    Audio.incrementVolume();
-                else if (event.angleDelta.y < 0)
-                    Audio.decrementVolume();
-            }
-
-            StyledSlider {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                implicitHeight: parent.implicitHeight
-
-                value: Audio.volume
-                onMoved: Audio.setVolume(value)
-
-                Behavior on value {
-                    Anim {}
-                }
-            }
-        }
-
         StyledRect {
             Layout.topMargin: Appearance.spacing.normal
             visible: Config.general.apps.audio.length > 0
