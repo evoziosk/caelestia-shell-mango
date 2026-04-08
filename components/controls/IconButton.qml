@@ -1,7 +1,7 @@
 import ".."
+import QtQuick
 import qs.services
 import qs.config
-import QtQuick
 
 StyledRect {
     id: root
@@ -44,7 +44,7 @@ StyledRect {
 
     onCheckedChanged: internalChecked = checked
 
-    radius: internalChecked ? Appearance.rounding.small : implicitHeight / 2
+    radius: internalChecked ? Appearance.rounding.small : implicitHeight / 2 * Math.min(1, Appearance.rounding.scale)
     color: type === IconButton.Text ? "transparent" : disabled ? disabledColour : internalChecked ? activeColour : inactiveColour
 
     implicitWidth: implicitHeight
@@ -53,14 +53,14 @@ StyledRect {
     StateLayer {
         id: stateLayer
 
-        color: root.internalChecked ? root.activeOnColour : root.inactiveOnColour
-        disabled: root.disabled
-
         function onClicked(): void {
             if (root.toggle)
                 root.internalChecked = !root.internalChecked;
             root.clicked();
         }
+
+        color: root.internalChecked ? root.activeOnColour : root.inactiveOnColour
+        disabled: root.disabled
     }
 
     MaterialIcon {

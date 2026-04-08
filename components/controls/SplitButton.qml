@@ -1,8 +1,8 @@
 import ".."
-import qs.services
-import qs.config
 import QtQuick
 import QtQuick.Layouts
+import qs.services
+import qs.config
 
 Row {
     id: root
@@ -36,7 +36,7 @@ Row {
     spacing: Math.floor(Appearance.spacing.small / 2)
 
     StyledRect {
-        radius: implicitHeight / 2
+        radius: implicitHeight / 2 * Math.min(1, Appearance.rounding.scale)
         topRightRadius: Appearance.rounding.small / 2
         bottomRightRadius: Appearance.rounding.small / 2
         color: root.disabled ? root.disabledColour : root.colour
@@ -47,14 +47,14 @@ Row {
         StateLayer {
             id: stateLayer
 
+            function onClicked(): void {
+                root.active?.clicked();
+            }
+
             rect.topRightRadius: parent.topRightRadius
             rect.bottomRightRadius: parent.bottomRightRadius
             color: root.textColour
             disabled: root.disabled
-
-            function onClicked(): void {
-                root.active?.clicked();
-            }
         }
 
         RowLayout {
@@ -96,9 +96,9 @@ Row {
     StyledRect {
         id: expandBtn
 
-        property real rad: root.expanded ? implicitHeight / 2 : Appearance.rounding.small / 2
+        property real rad: root.expanded ? implicitHeight / 2 * Math.min(1, Appearance.rounding.scale) : Appearance.rounding.small / 2
 
-        radius: implicitHeight / 2
+        radius: implicitHeight / 2 * Math.min(1, Appearance.rounding.scale)
         topLeftRadius: rad
         bottomLeftRadius: rad
         color: root.disabled ? root.disabledColour : root.colour
@@ -109,14 +109,14 @@ Row {
         StateLayer {
             id: expandStateLayer
 
+            function onClicked(): void {
+                root.expanded = !root.expanded;
+            }
+
             rect.topLeftRadius: parent.topLeftRadius
             rect.bottomLeftRadius: parent.bottomLeftRadius
             color: root.textColour
             disabled: root.disabled
-
-            function onClicked(): void {
-                root.expanded = !root.expanded;
-            }
         }
 
         MaterialIcon {

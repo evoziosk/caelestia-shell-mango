@@ -1,12 +1,12 @@
 pragma ComponentBehavior: Bound
 
+import QtQuick
+import QtQuick.Layouts
+import Quickshell
 import qs.components
 import qs.components.controls
 import qs.services
 import qs.config
-import Quickshell
-import QtQuick
-import QtQuick.Layouts
 
 Item {
     id: root
@@ -18,6 +18,7 @@ Item {
     property alias active: session.active
     property alias navExpanded: session.navExpanded
 
+    readonly property bool initialOpeningComplete: panes.initialOpeningComplete
     readonly property Session session: Session {
         id: session
 
@@ -61,14 +62,19 @@ Item {
             color: Colours.tPalette.m3surfaceContainer
 
             CustomMouseArea {
-                anchors.fill: parent
-
                 function onWheel(event: WheelEvent): void {
+                    // Prevent tab switching during initial opening animation to avoid blank pages
+                    if (!panes.initialOpeningComplete) {
+                        return;
+                    }
+
                     if (event.angleDelta.y < 0)
                         root.session.activeIndex = Math.min(root.session.activeIndex + 1, root.session.panes.length - 1);
                     else if (event.angleDelta.y > 0)
                         root.session.activeIndex = Math.max(root.session.activeIndex - 1, 0);
                 }
+
+                anchors.fill: parent
             }
 
             NavRail {
@@ -76,10 +82,13 @@ Item {
 
                 screen: root.screen
                 session: root.session
+                initialOpeningComplete: root.initialOpeningComplete
             }
         }
 
         Panes {
+            id: panes
+
             Layout.fillWidth: true
             Layout.fillHeight: true
 

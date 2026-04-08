@@ -1,11 +1,10 @@
 pragma ComponentBehavior: Bound
 
+import QtQuick
+import QtQuick.Layouts
 import qs.components
 import qs.services
 import qs.config
-import qs.utils
-import QtQuick
-import QtQuick.Layouts
 
 ColumnLayout {
     id: root
@@ -19,11 +18,11 @@ ColumnLayout {
     spacing: Appearance.spacing.small
 
     Loader {
+        asynchronous: true
         Layout.topMargin: Appearance.padding.large * 2
         Layout.bottomMargin: -Appearance.padding.large
         Layout.alignment: Qt.AlignHCenter
 
-        asynchronous: true
         active: root.rootHeight > 610
         visible: active
 
@@ -72,8 +71,8 @@ ColumnLayout {
         }
 
         Loader {
-            Layout.rightMargin: Appearance.padding.smaller
             asynchronous: true
+            Layout.rightMargin: Appearance.padding.smaller
             active: root.width > 400
             visible: active
 
@@ -109,11 +108,11 @@ ColumnLayout {
     Loader {
         id: forecastLoader
 
+        asynchronous: true
         Layout.topMargin: Appearance.spacing.smaller
         Layout.bottomMargin: Appearance.padding.large * 2
         Layout.fillWidth: true
 
-        asynchronous: true
         active: root.rootHeight > 820
         visible: active
 
@@ -122,31 +121,14 @@ ColumnLayout {
 
             Repeater {
                 model: {
-                    const forecast = Weather.forecast;
-                    let count = root.width < 320 ? 3 : root.width < 400 ? 4 : 5;
+                    const forecast = Weather.hourlyForecast;
+                    const count = root.width < 320 ? 3 : root.width < 400 ? 4 : 5;
                     if (!forecast)
                         return Array.from({
                             length: count
                         }, () => null);
 
-                    const hours = [];
-                    const hour = new Date().getHours();
-
-                    const today = forecast[0].hourly;
-                    const arr = [...today, ...forecast[1].hourly];
-                    for (let i = 0; i < arr.length; i++) {
-                        const time = parseInt(arr[i].time, 10) / 100;
-
-                        if (i > today.length ? time < hour : time > hour) {
-                            hours.push(arr[i]);
-                            count--;
-                        }
-
-                        if (count === 0)
-                            break;
-                    }
-
-                    return hours;
+                    return forecast.slice(0, count);
                 }
 
                 ColumnLayout {
@@ -160,9 +142,7 @@ ColumnLayout {
                     StyledText {
                         Layout.fillWidth: true
                         text: {
-                            if (!forecastHour.modelData)
-                                return "00 AM";
-                            const hour = parseInt(forecastHour.modelData.time, 10) / 100;
+                            const hour = forecastHour.modelData?.hour ?? 0;
                             return hour > 12 ? `${(hour - 12).toString().padStart(2, "0")} PM` : `${hour.toString().padStart(2, "0")} AM`;
                         }
                         color: Colours.palette.m3outline
@@ -172,7 +152,7 @@ ColumnLayout {
 
                     MaterialIcon {
                         Layout.alignment: Qt.AlignHCenter
-                        text: forecastHour.modelData ? Icons.getWeatherIcon(forecastHour.modelData.weatherCode) : "cloud_alert"
+                        text: forecastHour.modelData?.icon ?? "cloud_alert"
                         font.pointSize: Appearance.font.size.extraLarge * 1.5
                         font.weight: 500
                     }

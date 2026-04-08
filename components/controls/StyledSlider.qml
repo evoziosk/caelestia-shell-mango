@@ -1,8 +1,8 @@
+import QtQuick
+import QtQuick.Templates
 import qs.components
 import qs.services
 import qs.config
-import QtQuick
-import QtQuick.Templates
 
 Slider {
     id: root
@@ -32,7 +32,7 @@ Slider {
 
             implicitWidth: parent.width - root.handle.x - root.handle.implicitWidth - root.implicitHeight / 6
 
-            color: Colours.tPalette.m3surfaceContainer
+            color: Colours.palette.m3surfaceContainerHighest
             radius: Appearance.rounding.full
             topLeftRadius: root.implicitHeight / 15
             bottomLeftRadius: root.implicitHeight / 15

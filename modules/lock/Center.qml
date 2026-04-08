@@ -1,19 +1,18 @@
 pragma ComponentBehavior: Bound
 
+import QtQuick
+import QtQuick.Layouts
 import qs.components
 import qs.components.controls
 import qs.components.images
 import qs.services
 import qs.config
 import qs.utils
-import QtQuick
-import QtQuick.Layouts
 
 ColumnLayout {
     id: root
 
     required property var lock
-    readonly property list<string> timeComponents: Time.format(Config.services.useTwelveHourClock ? "hh:mm:A" : "hh:mm").split(":")
     readonly property real centerScale: Math.min(1, (lock.screen?.height ?? 1440) / 1440)
     readonly property int centerWidth: Config.lock.sizes.centerWidth * centerScale
 
@@ -29,7 +28,7 @@ ColumnLayout {
 
         StyledText {
             Layout.alignment: Qt.AlignVCenter
-            text: root.timeComponents[0]
+            text: Time.hourStr
             color: Colours.palette.m3secondary
             font.pointSize: Math.floor(Appearance.font.size.extraLarge * 3 * root.centerScale)
             font.family: Appearance.font.family.clock
@@ -47,7 +46,7 @@ ColumnLayout {
 
         StyledText {
             Layout.alignment: Qt.AlignVCenter
-            text: root.timeComponents[1]
+            text: Time.minuteStr
             color: Colours.palette.m3secondary
             font.pointSize: Math.floor(Appearance.font.size.extraLarge * 3 * root.centerScale)
             font.family: Appearance.font.family.clock
@@ -55,15 +54,15 @@ ColumnLayout {
         }
 
         Loader {
+            asynchronous: true
             Layout.leftMargin: Appearance.spacing.small
             Layout.alignment: Qt.AlignVCenter
 
-            asynchronous: true
             active: Config.services.useTwelveHourClock
             visible: active
 
             sourceComponent: StyledText {
-                text: root.timeComponents[2] ?? ""
+                text: Time.amPmStr
                 color: Colours.palette.m3primary
                 font.pointSize: Math.floor(Appearance.font.size.extraLarge * 2 * root.centerScale)
                 font.family: Appearance.font.family.clock
@@ -99,6 +98,7 @@ ColumnLayout {
             text: "person"
             color: Colours.palette.m3onSurfaceVariant
             font.pointSize: Math.floor(root.centerWidth / 4)
+            visible: pfp.status !== Image.Ready
         }
 
         CachingImage {
@@ -135,12 +135,12 @@ ColumnLayout {
         }
 
         StateLayer {
-            hoverEnabled: false
-            cursorShape: Qt.IBeamCursor
-
             function onClicked(): void {
                 parent.forceActiveFocus();
             }
+
+            hoverEnabled: false
+            cursorShape: Qt.IBeamCursor
         }
 
         RowLayout {
@@ -194,11 +194,11 @@ ColumnLayout {
                 radius: Appearance.rounding.full
 
                 StateLayer {
-                    color: root.lock.pam.buffer ? Colours.palette.m3onPrimary : Colours.palette.m3onSurface
-
                     function onClicked(): void {
                         root.lock.pam.passwd.start();
                     }
+
+                    color: root.lock.pam.buffer ? Colours.palette.m3onPrimary : Colours.palette.m3onSurface
                 }
 
                 MaterialIcon {
@@ -357,8 +357,6 @@ ColumnLayout {
             }
 
             Connections {
-                target: root.lock.pam
-
                 function onFlashMsg(): void {
                     exitAnim.stop();
                     if (message.scale < 1)
@@ -366,6 +364,8 @@ ColumnLayout {
                     else
                         flashAnim.restart();
                 }
+
+                target: root.lock.pam
             }
 
             Anim {

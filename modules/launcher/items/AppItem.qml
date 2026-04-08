@@ -1,16 +1,17 @@
-import "../services"
+import QtQuick
+import Quickshell
+import Quickshell.Widgets
 import qs.components
 import qs.services
 import qs.config
-import Quickshell
-import Quickshell.Widgets
-import QtQuick
+import qs.utils
+import qs.modules.launcher.services
 
 Item {
     id: root
 
     required property DesktopEntry modelData
-    required property PersistentProperties visibilities
+    required property DrawerVisibilities visibilities
 
     implicitHeight: Config.launcher.sizes.itemHeight
 
@@ -18,12 +19,12 @@ Item {
     anchors.right: parent?.right
 
     StateLayer {
-        radius: Appearance.rounding.normal
-
         function onClicked(): void {
             Apps.launch(root.modelData);
             root.visibilities.launcher = false;
         }
+
+        radius: Appearance.rounding.normal
     }
 
     Item {
@@ -35,6 +36,7 @@ Item {
         IconImage {
             id: icon
 
+            asynchronous: true
             source: Quickshell.iconPath(root.modelData?.icon, "image-missing")
             implicitSize: parent.height * 0.8
 
@@ -46,7 +48,7 @@ Item {
             anchors.leftMargin: Appearance.spacing.normal
             anchors.verticalCenter: icon.verticalCenter
 
-            implicitWidth: parent.width - icon.width
+            implicitWidth: parent.width - icon.width - favouriteIcon.width
             implicitHeight: name.implicitHeight + comment.implicitHeight
 
             StyledText {
@@ -64,9 +66,24 @@ Item {
                 color: Colours.palette.m3outline
 
                 elide: Text.ElideRight
-                width: root.width - icon.width - Appearance.rounding.normal * 2
+                width: root.width - icon.width - favouriteIcon.width - Appearance.rounding.normal * 2
 
                 anchors.top: name.bottom
+            }
+        }
+
+        Loader {
+            id: favouriteIcon
+
+            asynchronous: true
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.right: parent.right
+            active: root.modelData && Strings.testRegexList(Config.launcher.favouriteApps, root.modelData.id)
+
+            sourceComponent: MaterialIcon {
+                text: "favorite"
+                fill: 1
+                color: Colours.palette.m3primary
             }
         }
     }

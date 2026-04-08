@@ -126,8 +126,6 @@ in
     prePatch = ''
       substituteInPlace assets/pam.d/fprint \
         --replace-fail pam_fprintd.so /run/current-system/sw/lib/security/pam_fprintd.so
-      substituteInPlace shell.qml \
-        --replace-fail 'ShellRoot {' 'ShellRoot {  settings.watchFiles: false'
     '';
 
     postInstall = ''
@@ -140,6 +138,9 @@ in
 
       mkdir -p $out/lib
       ln -s ${extras}/lib/* $out/lib/
+
+      # Ensure wrap_term_launch.sh is executable
+      chmod 755 $out/share/caelestia-shell/assets/wrap_term_launch.sh
     '';
 
     passthru = {

@@ -1,10 +1,12 @@
-import qs.components
-import qs.services
-import qs.utils
-import qs.config
-import Quickshell
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
+import qs.components
+import qs.services
+import qs.config
+import qs.utils
 
 ColumnLayout {
     id: root
@@ -55,13 +57,14 @@ ColumnLayout {
     Loader {
         id: windows
 
+        asynchronous: true
+
         Layout.alignment: Qt.AlignHCenter
         Layout.fillHeight: true
         Layout.topMargin: -Config.bar.sizes.innerWidth / 10
 
         visible: active
         active: root.hasWindows
-        asynchronous: true
 
         sourceComponent: Column {
             spacing: 0
@@ -89,17 +92,10 @@ ColumnLayout {
             Repeater {
                 model: ScriptModel {
                     values: {
-                        const toplevels = Hypr.toplevels?.values;
-                        if (!toplevels) return [];
-                        // Convert UntypedObjectModel to array
-                        const arr = [];
-                        for (let i = 0; i < toplevels.length; i++) {
-                            const tl = toplevels[i];
-                            if (tl.workspace?.id === root.ws) {
-                                arr.push(tl);
-                            }
-                        }
-                        return arr;
+                        const ws = root.ws;
+                        const windows = Hypr.toplevels.values.filter(c => c.workspace?.id === ws);
+                        const maxIcons = Config.bar.workspaces.maxWindowIcons;
+                        return maxIcons > 0 ? windows.slice(0, maxIcons) : windows;
                     }
                 }
 

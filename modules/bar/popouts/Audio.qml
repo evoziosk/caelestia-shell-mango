@@ -1,19 +1,18 @@
 pragma ComponentBehavior: Bound
 
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import Quickshell.Services.Pipewire
 import qs.components
 import qs.components.controls
 import qs.services
 import qs.config
-import Quickshell
-import Quickshell.Services.Pipewire
-import QtQuick
-import QtQuick.Layouts
-import QtQuick.Controls
 
 Item {
     id: root
 
-    required property var wrapper
+    required property PopoutState popouts
 
     implicitWidth: layout.implicitWidth + Appearance.padding.normal * 2
     implicitHeight: layout.implicitHeight + Appearance.padding.normal * 2
@@ -72,43 +71,48 @@ Item {
             }
         }
 
-        StyledRect {
+        StyledText {
+            Layout.topMargin: Appearance.spacing.smaller
+            Layout.bottomMargin: -Appearance.spacing.small / 2
+            text: qsTr("Volume (%1)").arg(Audio.muted ? qsTr("Muted") : `${Math.round(Audio.volume * 100)}%`)
+            font.weight: 500
+        }
+
+        CustomMouseArea {
+            Layout.fillWidth: true
+            implicitHeight: Appearance.padding.normal * 3
+
+            onWheel: event => {
+                if (event.angleDelta.y > 0)
+                    Audio.incrementVolume();
+                else if (event.angleDelta.y < 0)
+                    Audio.decrementVolume();
+            }
+
+            StyledSlider {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                implicitHeight: parent.implicitHeight
+
+                value: Audio.volume
+                onMoved: Audio.setVolume(value)
+
+                Behavior on value {
+                    Anim {}
+                }
+            }
+        }
+
+        IconTextButton {
+            Layout.fillWidth: true
             Layout.topMargin: Appearance.spacing.normal
-            visible: Config.general.apps.audio.length > 0
+            inactiveColour: Colours.palette.m3primaryContainer
+            inactiveOnColour: Colours.palette.m3onPrimaryContainer
+            verticalPadding: Appearance.padding.small
+            text: qsTr("Open settings")
+            icon: "settings"
 
-            implicitWidth: expandBtn.implicitWidth + Appearance.padding.normal * 2
-            implicitHeight: expandBtn.implicitHeight + Appearance.padding.small
-
-            radius: Appearance.rounding.normal
-            color: Colours.palette.m3primaryContainer
-
-            StateLayer {
-                color: Colours.palette.m3onPrimaryContainer
-
-                function onClicked(): void {
-                    root.wrapper.hasCurrent = false;
-                    Quickshell.execDetached(["app2unit", "--", ...Config.general.apps.audio]);
-                }
-            }
-
-            RowLayout {
-                id: expandBtn
-
-                anchors.centerIn: parent
-                spacing: Appearance.spacing.small
-
-                StyledText {
-                    Layout.leftMargin: Appearance.padding.smaller
-                    text: qsTr("Open settings")
-                    color: Colours.palette.m3onPrimaryContainer
-                }
-
-                MaterialIcon {
-                    text: "chevron_right"
-                    color: Colours.palette.m3onPrimaryContainer
-                    font.pointSize: Appearance.font.size.large
-                }
-            }
+            onClicked: root.popouts.detachRequested("audio")
         }
     }
 }

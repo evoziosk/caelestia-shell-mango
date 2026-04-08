@@ -1,8 +1,8 @@
-import qs.config
-import Caelestia
+import QtQuick
 import Quickshell
 import Quickshell.Services.UPower
-import QtQuick
+import Caelestia
+import qs.config
 
 Scope {
     id: root
@@ -10,12 +10,10 @@ Scope {
     readonly property list<var> warnLevels: [...Config.general.battery.warnLevels].sort((a, b) => b.level - a.level)
 
     Connections {
-        target: UPower
-
         function onOnBatteryChanged(): void {
             if (UPower.onBattery) {
                 if (Config.utilities.toasts.chargingChanged)
-                    Toaster.toast(qsTr("Charger unplugged"), qsTr("Battery is now on AC"), "power_off");
+                    Toaster.toast(qsTr("Charger unplugged"), qsTr("Battery is discharging"), "power_off");
             } else {
                 if (Config.utilities.toasts.chargingChanged)
                     Toaster.toast(qsTr("Charger plugged in"), qsTr("Battery is charging"), "power");
@@ -23,11 +21,11 @@ Scope {
                     level.warned = false;
             }
         }
+
+        target: UPower
     }
 
     Connections {
-        target: UPower.displayDevice
-
         function onPercentageChanged(): void {
             if (!UPower.onBattery)
                 return;
@@ -45,6 +43,8 @@ Scope {
                 hibernateTimer.start();
             }
         }
+
+        target: UPower.displayDevice
     }
 
     Timer {

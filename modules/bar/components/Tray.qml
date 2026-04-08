@@ -1,10 +1,11 @@
 pragma ComponentBehavior: Bound
 
+import QtQuick
+import Quickshell
+import Quickshell.Services.SystemTray
 import qs.components
 import qs.services
 import qs.config
-import Quickshell.Services.SystemTray
-import QtQuick
 
 StyledRect {
     id: root
@@ -30,7 +31,7 @@ StyledRect {
     implicitWidth: Config.bar.sizes.innerWidth
     implicitHeight: nonAnimHeight
 
-    color: Qt.alpha(Colours.tPalette.m3surfaceContainer, Config.bar.tray.background ? Colours.tPalette.m3surfaceContainer.a : 0)
+    color: Qt.alpha(Colours.tPalette.m3surfaceContainer, (Config.bar.tray.background && items.count > 0) ? Colours.tPalette.m3surfaceContainer.a : 0)
     radius: Appearance.rounding.full
 
     Column {
@@ -66,7 +67,9 @@ StyledRect {
         Repeater {
             id: items
 
-            model: SystemTray.items
+            model: ScriptModel {
+                values: SystemTray.items.values.filter(i => !Config.bar.tray.hiddenIcons.includes(i.id))
+            }
 
             TrayItem {}
         }
@@ -79,10 +82,12 @@ StyledRect {
     Loader {
         id: expandIcon
 
+        asynchronous: true
+
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
 
-        active: Config.bar.tray.compact
+        active: Config.bar.tray.compact && items.count > 0
 
         sourceComponent: Item {
             implicitWidth: expandIconInner.implicitWidth

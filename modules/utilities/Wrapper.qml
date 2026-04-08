@@ -1,15 +1,17 @@
 pragma ComponentBehavior: Bound
 
+import QtQuick
+import Quickshell
 import qs.components
 import qs.config
-import Quickshell
-import QtQuick
+import qs.modules.bar.popouts as BarPopouts
 
 Item {
     id: root
 
-    required property var visibilities
+    required property DrawerVisibilities visibilities
     required property Item sidebar
+    required property BarPopouts.Wrapper popouts
 
     readonly property PersistentProperties props: PersistentProperties {
         property bool recordingListExpanded: false
@@ -78,6 +80,7 @@ Item {
     Loader {
         id: content
 
+        asynchronous: true
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.margins: Appearance.padding.large
@@ -89,6 +92,7 @@ Item {
             implicitWidth: root.implicitWidth - Appearance.padding.large * 2
             props: root.props
             visibilities: root.visibilities
+            popouts: root.popouts
         }
     }
 }

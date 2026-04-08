@@ -1,13 +1,15 @@
+import QtQuick
 import qs.services
 import qs.config
-import QtQuick
 
 MouseArea {
     id: root
 
     property bool disabled
+    property bool showHoverBackground: true
     property color color: Colours.palette.m3onSurface
-    property real radius: parent?.radius ?? 0
+    // Pick up radius from parent if it has one (parent can be anything with a radius property)
+    property real radius: parent?.radius ?? 0 // qmllint disable missing-property
     property alias rect: hoverLayer
 
     function onClicked(): void {
@@ -75,7 +77,7 @@ MouseArea {
 
         anchors.fill: parent
 
-        color: Qt.alpha(root.color, root.disabled ? 0 : root.pressed ? 0.1 : root.containsMouse ? 0.08 : 0)
+        color: Qt.alpha(root.color, root.disabled ? 0 : root.pressed ? 0.12 : (root.showHoverBackground && root.containsMouse) ? 0.08 : 0)
         radius: root.radius
 
         StyledRect {

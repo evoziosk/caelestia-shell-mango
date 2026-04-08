@@ -1,9 +1,9 @@
+import QtQuick
+import QtQuick.Layouts
+import Quickshell.Hyprland
 import qs.components
 import qs.services
 import qs.config
-// import Quickshell.Hyprland  // Removed for MangoWC
-import QtQuick
-import QtQuick.Layouts
 
 ColumnLayout {
     id: root

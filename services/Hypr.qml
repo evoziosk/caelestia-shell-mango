@@ -30,11 +30,49 @@ QtObject {
     readonly property var devices: Services.Mango.devices
 
     property bool hadKeyboard: Services.Mango.hadKeyboard
+    property string lastSpecialWorkspace: ""
 
     signal configReloaded
 
     function dispatch(request: string): void {
         Services.Mango.dispatch(request);
+    }
+
+    function cycleSpecialWorkspace(direction: string): void {
+        const openSpecials = workspaces.values.filter(w => w.name.startsWith("special:") && w.lastIpcObject.windows > 0);
+
+        if (openSpecials.length === 0)
+            return;
+
+        const activeSpecial = focusedMonitor?.lastIpcObject?.specialWorkspace?.name ?? "";
+
+        if (!activeSpecial) {
+            if (lastSpecialWorkspace) {
+                const workspace = workspaces.values.find(w => w.name === lastSpecialWorkspace);
+                if (workspace && workspace.lastIpcObject.windows > 0) {
+                    dispatch(`workspace ${lastSpecialWorkspace}`);
+                    return;
+                }
+            }
+            dispatch(`workspace ${openSpecials[0].name}`);
+            return;
+        }
+
+        const currentIndex = openSpecials.findIndex(w => w.name === activeSpecial);
+        let nextIndex = 0;
+
+        if (currentIndex !== -1) {
+            if (direction === "next")
+                nextIndex = (currentIndex + 1) % openSpecials.length;
+            else
+                nextIndex = (currentIndex - 1 + openSpecials.length) % openSpecials.length;
+        }
+
+        dispatch(`workspace ${openSpecials[nextIndex].name}`);
+    }
+
+    function monitorNames(): list<string> {
+        return monitors.values.map(e => e.name);
     }
 
     function monitorFor(screen): var {
@@ -49,4 +87,3 @@ QtObject {
         Services.Mango.configReloaded.connect(root.configReloaded);
     }
 }
-

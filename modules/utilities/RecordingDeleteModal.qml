@@ -1,25 +1,25 @@
 pragma ComponentBehavior: Bound
 
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Shapes
+import Caelestia
 import qs.components
 import qs.components.controls
 import qs.components.effects
 import qs.services
 import qs.config
-import Caelestia
-import QtQuick
-import QtQuick.Layouts
-import QtQuick.Shapes
 
 Loader {
     id: root
 
     required property var props
 
+    asynchronous: true
     anchors.fill: parent
 
     opacity: root.props.recordingConfirmDelete ? 1 : 0
     active: opacity > 0
-    asynchronous: true
 
     sourceComponent: MouseArea {
         id: deleteConfirmation

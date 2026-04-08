@@ -10,24 +10,10 @@ JsonObject {
     property bool enableDangerousActions: false // Allow actions that can cause losing data, like shutdown, reboot and logout
     property int dragThreshold: 50
     property bool vimKeybinds: false
+    property list<string> favouriteApps: []
     property list<string> hiddenApps: []
     property UseFuzzy useFuzzy: UseFuzzy {}
     property Sizes sizes: Sizes {}
-
-    component UseFuzzy: JsonObject {
-        property bool apps: false
-        property bool actions: false
-        property bool schemes: false
-        property bool variants: false
-        property bool wallpapers: false
-    }
-
-    component Sizes: JsonObject {
-        property int itemWidth: 600
-        property int itemHeight: 57
-        property int wallpaperWidth: 280
-        property int wallpaperHeight: 200
-    }
 
     property list<var> actions: [
         {
@@ -133,6 +119,29 @@ JsonObject {
             command: ["systemctl", "suspend-then-hibernate"],
             enabled: true,
             dangerous: false
+        },
+        {
+            name: "Settings",
+            icon: "settings",
+            description: "Configure the shell",
+            command: ["caelestia", "shell", "controlCenter", "open"],
+            enabled: true,
+            dangerous: false
         }
     ]
+
+    component UseFuzzy: JsonObject {
+        property bool apps: false
+        property bool actions: false
+        property bool schemes: false
+        property bool variants: false
+        property bool wallpapers: false
+    }
+
+    component Sizes: JsonObject {
+        property int itemWidth: 600
+        property int itemHeight: 57
+        property int wallpaperWidth: 280
+        property int wallpaperHeight: 200
+    }
 }

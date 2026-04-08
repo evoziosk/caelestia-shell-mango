@@ -1,16 +1,15 @@
+import "dash"
+import QtQuick.Layouts
 import qs.components
 import qs.components.filedialog
 import qs.services
 import qs.config
-import "dash"
-import Quickshell
-import QtQuick.Layouts
 
 GridLayout {
     id: root
 
-    required property PersistentProperties visibilities
-    required property PersistentProperties state
+    required property DrawerVisibilities visibilities
+    required property DashboardState dashState
     required property FileDialog facePicker
 
     rowSpacing: Appearance.spacing.normal
@@ -22,11 +21,12 @@ GridLayout {
         Layout.preferredWidth: user.implicitWidth
         Layout.preferredHeight: user.implicitHeight
 
+        radius: Appearance.rounding.large
+
         User {
             id: user
 
             visibilities: root.visibilities
-            state: root.state
             facePicker: root.facePicker
         }
     }
@@ -37,13 +37,17 @@ GridLayout {
         Layout.preferredWidth: Config.dashboard.sizes.weatherWidth
         Layout.fillHeight: true
 
-        Weather {}
+        radius: Appearance.rounding.large * 1.5
+
+        SmallWeather {}
     }
 
     Rect {
         Layout.row: 1
         Layout.preferredWidth: dateTime.implicitWidth
         Layout.fillHeight: true
+
+        radius: Appearance.rounding.normal
 
         DateTime {
             id: dateTime
@@ -57,10 +61,12 @@ GridLayout {
         Layout.fillWidth: true
         Layout.preferredHeight: calendar.implicitHeight
 
+        radius: Appearance.rounding.large
+
         Calendar {
             id: calendar
 
-            state: root.state
+            dashState: root.dashState
         }
     }
 
@@ -69,6 +75,8 @@ GridLayout {
         Layout.column: 4
         Layout.preferredWidth: resources.implicitWidth
         Layout.fillHeight: true
+
+        radius: Appearance.rounding.normal
 
         Resources {
             id: resources
@@ -82,13 +90,14 @@ GridLayout {
         Layout.preferredWidth: media.implicitWidth
         Layout.fillHeight: true
 
+        radius: Appearance.rounding.large * 2
+
         Media {
             id: media
         }
     }
 
     component Rect: StyledRect {
-        radius: Appearance.rounding.small
         color: Colours.tPalette.m3surfaceContainer
     }
 }

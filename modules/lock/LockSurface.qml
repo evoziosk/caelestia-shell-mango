@@ -1,11 +1,11 @@
 pragma ComponentBehavior: Bound
 
+import QtQuick
+import QtQuick.Effects
+import Quickshell.Wayland
 import qs.components
 import qs.services
 import qs.config
-import Quickshell.Wayland
-import QtQuick
-import QtQuick.Effects
 
 WlSessionLockSurface {
     id: root
@@ -18,11 +18,11 @@ WlSessionLockSurface {
     color: "transparent"
 
     Connections {
-        target: root.lock
-
         function onUnlock(): void {
             unlockAnim.start();
         }
+
+        target: root.lock
     }
 
     SequentialAnimation {
@@ -144,14 +144,14 @@ WlSessionLockSurface {
                 Anim {
                     target: lockContent
                     property: "implicitWidth"
-                    to: root.screen.height * Config.lock.sizes.heightMult * Config.lock.sizes.ratio
+                    to: (root.screen?.height ?? 0) * Config.lock.sizes.heightMult * Config.lock.sizes.ratio
                     duration: Appearance.anim.durations.expressiveDefaultSpatial
                     easing.bezierCurve: Appearance.anim.curves.expressiveDefaultSpatial
                 }
                 Anim {
                     target: lockContent
                     property: "implicitHeight"
-                    to: root.screen.height * Config.lock.sizes.heightMult
+                    to: (root.screen?.height ?? 0) * Config.lock.sizes.heightMult
                     duration: Appearance.anim.durations.expressiveDefaultSpatial
                     easing.bezierCurve: Appearance.anim.curves.expressiveDefaultSpatial
                 }

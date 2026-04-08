@@ -1,21 +1,21 @@
 pragma ComponentBehavior: Bound
 
+import QtQuick
+import QtQuick.Controls
+import Quickshell
+import Quickshell.Widgets
 import qs.components
 import qs.services
 import qs.config
-import Quickshell
-import Quickshell.Widgets
-import QtQuick
-import QtQuick.Controls
 
 StackView {
     id: root
 
-    required property Item popouts
+    required property PopoutState popouts
     required property QsMenuHandle trayItem
 
-    implicitWidth: currentItem.implicitWidth
-    implicitHeight: currentItem.implicitHeight
+    implicitWidth: currentItem?.implicitWidth ?? 0
+    implicitHeight: currentItem?.implicitHeight ?? 0
 
     initialItem: SubMenu {
         handle: root.trayItem
@@ -25,6 +25,12 @@ StackView {
     pushExit: NoAnim {}
     popEnter: NoAnim {}
     popExit: NoAnim {}
+
+    Component {
+        id: subMenuComp
+
+        SubMenu {}
+    }
 
     component NoAnim: Transition {
         NumberAnimation {
@@ -81,23 +87,16 @@ StackView {
                 Loader {
                     id: children
 
+                    asynchronous: true
                     anchors.left: parent.left
                     anchors.right: parent.right
 
                     active: !item.modelData.isSeparator
-                    asynchronous: true
 
                     sourceComponent: Item {
                         implicitHeight: label.implicitHeight
 
                         StateLayer {
-                            anchors.margins: -Appearance.padding.small / 2
-                            anchors.leftMargin: -Appearance.padding.smaller
-                            anchors.rightMargin: -Appearance.padding.smaller
-
-                            radius: item.radius
-                            disabled: !item.modelData.enabled
-
                             function onClicked(): void {
                                 const entry = item.modelData;
                                 if (entry.hasChildren)
@@ -110,17 +109,25 @@ StackView {
                                     root.popouts.hasCurrent = false;
                                 }
                             }
+
+                            anchors.margins: -Appearance.padding.small / 2
+                            anchors.leftMargin: -Appearance.padding.smaller
+                            anchors.rightMargin: -Appearance.padding.smaller
+
+                            radius: item.radius
+                            disabled: !item.modelData.enabled
                         }
 
                         Loader {
                             id: icon
 
+                            asynchronous: true
                             anchors.left: parent.left
 
                             active: item.modelData.icon !== ""
-                            asynchronous: true
 
                             sourceComponent: IconImage {
+                                asynchronous: true
                                 implicitSize: label.implicitHeight
 
                                 source: item.modelData.icon
@@ -151,11 +158,11 @@ StackView {
                         Loader {
                             id: expand
 
+                            asynchronous: true
                             anchors.verticalCenter: parent.verticalCenter
                             anchors.right: parent.right
 
                             active: item.modelData.hasChildren
-                            asynchronous: true
 
                             sourceComponent: MaterialIcon {
                                 text: "chevron_right"
@@ -168,8 +175,8 @@ StackView {
         }
 
         Loader {
-            active: menu.isSubMenu
             asynchronous: true
+            active: menu.isSubMenu
 
             sourceComponent: Item {
                 implicitWidth: back.implicitWidth
@@ -190,12 +197,12 @@ StackView {
                         color: Colours.palette.m3secondaryContainer
 
                         StateLayer {
-                            radius: parent.radius
-                            color: Colours.palette.m3onSecondaryContainer
-
                             function onClicked(): void {
                                 root.pop();
                             }
+
+                            radius: parent.radius
+                            color: Colours.palette.m3onSecondaryContainer
                         }
                     }
 
@@ -219,11 +226,5 @@ StackView {
                 }
             }
         }
-    }
-
-    Component {
-        id: subMenuComp
-
-        SubMenu {}
     }
 }

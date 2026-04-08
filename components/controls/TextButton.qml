@@ -1,7 +1,7 @@
 import ".."
+import QtQuick
 import qs.services
 import qs.config
-import QtQuick
 
 StyledRect {
     id: root
@@ -47,7 +47,7 @@ StyledRect {
 
     onCheckedChanged: internalChecked = checked
 
-    radius: internalChecked ? Appearance.rounding.small : implicitHeight / 2
+    radius: internalChecked ? Appearance.rounding.small : implicitHeight / 2 * Math.min(1, Appearance.rounding.scale)
     color: type === TextButton.Text ? "transparent" : internalChecked ? activeColour : inactiveColour
 
     implicitWidth: label.implicitWidth + horizontalPadding * 2
@@ -56,13 +56,13 @@ StyledRect {
     StateLayer {
         id: stateLayer
 
-        color: root.internalChecked ? root.activeOnColour : root.inactiveOnColour
-
         function onClicked(): void {
             if (root.toggle)
                 root.internalChecked = !root.internalChecked;
             root.clicked();
         }
+
+        color: root.internalChecked ? root.activeOnColour : root.inactiveOnColour
     }
 
     StyledText {

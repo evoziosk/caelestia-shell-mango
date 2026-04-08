@@ -22,3 +22,5 @@ test-mangowc-ipc.sh
 *.swp
 *.swo
 *~
+
+logs

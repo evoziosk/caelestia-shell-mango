@@ -3,9 +3,11 @@
 #include "audiocollector.hpp"
 #include "audioprovider.hpp"
 #include <cava/cavacore.h>
-#include <cmath>
 #include <cstddef>
-#include <qdebug.h>
+#include <qloggingcategory.h>
+
+Q_LOGGING_CATEGORY(lcCava, "caelestia.services.cava", QtInfoMsg)
+Q_LOGGING_CATEGORY(lcCavaProcessor, "caelestia.services.cava.processor", QtInfoMsg)
 
 namespace caelestia::services {
 
@@ -58,7 +60,7 @@ void CavaProcessor::process() {
 
 void CavaProcessor::setBars(int bars) {
     if (bars < 0) {
-        qWarning() << "CavaProcessor::setBars: bars must be greater than 0. Setting to 0.";
+        qCWarning(lcCavaProcessor) << "setBars: bars must be greater than 0. Setting to 0.";
         bars = 0;
     }
 
@@ -91,13 +93,6 @@ void CavaProcessor::initCava() {
     }
 
     m_plan = cava_init(m_bars, ac::SAMPLE_RATE, 1, 1, 0.85, 50, 10000);
-
-    if (m_plan->status == -1) {
-        qWarning() << "CavaProcessor::initCava: failed to initialise cava plan";
-        cleanup();
-        return;
-    }
-
     m_out = new double[static_cast<size_t>(m_bars)];
 }
 
@@ -117,7 +112,7 @@ int CavaProvider::bars() const {
 
 void CavaProvider::setBars(int bars) {
     if (bars < 0) {
-        qWarning() << "CavaProvider::setBars: bars must be greater than 0. Setting to 0.";
+        qCWarning(lcCava) << "setBars: bars must be greater than 0. Setting to 0.";
         bars = 0;
     }
 

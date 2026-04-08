@@ -1,8 +1,9 @@
 pragma Singleton
 
-import qs.config
-import Caelestia
+import QtQuick
 import Quickshell
+import Caelestia
+import qs.config
 
 Singleton {
     id: root
@@ -28,7 +29,7 @@ Singleton {
     }
 
     function absolutePath(path: string): string {
-        return toLocalFile(path.replace("~", home));
+        return toLocalFile(path.replace(/~|(\$({?)HOME(}?))+/, home));
     }
 
     function shortenHome(path: string): string {

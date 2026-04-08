@@ -1,8 +1,11 @@
 #include "appdb.hpp"
 
+#include <qloggingcategory.h>
 #include <qsqldatabase.h>
 #include <qsqlquery.h>
 #include <quuid.h>
+
+Q_LOGGING_CATEGORY(lcAppDb, "caelestia.appdb", QtInfoMsg)
 
 namespace caelestia {
 
@@ -11,7 +14,7 @@ AppEntry::AppEntry(QObject* entry, unsigned int frequency, QObject* parent)
     , m_entry(entry)
     , m_frequency(frequency) {
     const auto mo = m_entry->metaObject();
-    const auto tmo = metaObject();
+    const auto tmo = &AppEntry::staticMetaObject;
 
     for (const auto& prop :
         { "name", "comment", "execString", "startupClass", "genericName", "categories", "keywords" }) {
@@ -162,6 +165,39 @@ void AppDb::setEntries(const QObjectList& entries) {
     m_timer->start();
 }
 
+QStringList AppDb::favouriteApps() const {
+    return m_favouriteApps;
+}
+
+void AppDb::setFavouriteApps(const QStringList& favApps) {
+    if (m_favouriteApps == favApps) {
+        return;
+    }
+
+    m_favouriteApps = favApps;
+    emit favouriteAppsChanged();
+    m_favouriteAppsRegex.clear();
+    m_favouriteAppsRegex.reserve(m_favouriteApps.size());
+    for (const QString& item : std::as_const(m_favouriteApps)) {
+        const QRegularExpression re(regexifyString(item));
+        if (re.isValid()) {
+            m_favouriteAppsRegex << re;
+        } else {
+            qCWarning(lcAppDb) << "setFavouriteApps: regular expression is not valid:" << re.pattern();
+        }
+    }
+
+    emit appsChanged();
+}
+
+QString AppDb::regexifyString(const QString& original) const {
+    if (original.startsWith('^') && original.endsWith('$'))
+        return original;
+
+    const QString escaped = QRegularExpression::escape(original);
+    return QStringLiteral("^%1$").arg(escaped);
+}
+
 QQmlListProperty<AppEntry> AppDb::apps() {
     return QQmlListProperty<AppEntry>(this, &getSortedApps());
 }
@@ -179,26 +215,46 @@ void AppDb::incrementFrequency(const QString& id) {
     auto* app = m_apps.value(id);
     if (app) {
         const auto before = getSortedApps();
-
         app->incrementFrequency();
-
-        if (before != getSortedApps()) {
+        getSortedApps();
+        if (before != m_sortedApps) {
             emit appsChanged();
         }
     } else {
-        qWarning() << "AppDb::incrementFrequency: could not find app with id" << id;
+        qCWarning(lcAppDb) << "incrementFrequency: could not find app with id" << id;
     }
 }
 
 QList<AppEntry*>& AppDb::getSortedApps() const {
     m_sortedApps = m_apps.values();
-    std::sort(m_sortedApps.begin(), m_sortedApps.end(), [](AppEntry* a, AppEntry* b) {
-        if (a->frequency() != b->frequency()) {
+
+    // Pre-compute favourite status to avoid repeated regex matching during sort
+    QSet<QString> favSet;
+    favSet.reserve(m_sortedApps.size());
+    for (const auto* app : std::as_const(m_sortedApps)) {
+        if (isFavourite(app))
+            favSet.insert(app->id());
+    }
+
+    std::sort(m_sortedApps.begin(), m_sortedApps.end(), [&favSet](AppEntry* a, AppEntry* b) {
+        const bool aIsFav = favSet.contains(a->id());
+        const bool bIsFav = favSet.contains(b->id());
+        if (aIsFav != bIsFav)
+            return aIsFav;
+        if (a->frequency() != b->frequency())
             return a->frequency() > b->frequency();
-        }
         return a->name().localeAwareCompare(b->name()) < 0;
     });
     return m_sortedApps;
+}
+
+bool AppDb::isFavourite(const AppEntry* app) const {
+    for (const QRegularExpression& re : m_favouriteAppsRegex) {
+        if (re.match(app->id()).hasMatch()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 quint32 AppDb::getFrequency(const QString& id) const {
@@ -222,7 +278,8 @@ void AppDb::updateAppFrequencies() {
         app->setFrequency(getFrequency(app->id()));
     }
 
-    if (before != getSortedApps()) {
+    getSortedApps();
+    if (before != m_sortedApps) {
         emit appsChanged();
     }
 }
@@ -249,11 +306,13 @@ void AppDb::updateApps() {
         newIds.insert(entry->property("id").toString());
     }
 
-    for (auto it = m_apps.keyBegin(); it != m_apps.keyEnd(); ++it) {
-        const auto& id = *it;
-        if (!newIds.contains(id)) {
+    for (auto it = m_apps.begin(); it != m_apps.end();) {
+        if (!newIds.contains(it.key())) {
             dirty = true;
-            m_apps.take(id)->deleteLater();
+            it.value()->deleteLater();
+            it = m_apps.erase(it);
+        } else {
+            ++it;
         }
     }
 

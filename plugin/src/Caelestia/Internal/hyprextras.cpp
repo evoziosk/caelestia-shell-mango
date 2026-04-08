@@ -3,7 +3,10 @@
 #include <qdir.h>
 #include <qjsonarray.h>
 #include <qlocalsocket.h>
+#include <qloggingcategory.h>
 #include <qvariant.h>
+
+Q_LOGGING_CATEGORY(lcHypr, "caelestia.internal.hypr", QtInfoMsg)
 
 namespace caelestia::internal::hypr {
 
@@ -16,8 +19,7 @@ HyprExtras::HyprExtras(QObject* parent)
     , m_devices(new HyprDevices(this)) {
     const auto his = qEnvironmentVariable("HYPRLAND_INSTANCE_SIGNATURE");
     if (his.isEmpty()) {
-        qWarning()
-            << "HyprExtras::HyprExtras: $HYPRLAND_INSTANCE_SIGNATURE is unset. Unable to connect to Hyprland socket.";
+        qCWarning(lcHypr) << "$HYPRLAND_INSTANCE_SIGNATURE is unset. Unable to connect to Hyprland socket.";
         return;
     }
 
@@ -26,8 +28,7 @@ HyprExtras::HyprExtras(QObject* parent)
         hyprDir = "/tmp/hypr/" + his;
 
         if (!QDir(hyprDir).exists()) {
-            qWarning() << "HyprExtras::HyprExtras: Hyprland socket directory does not exist. Unable to connect to "
-                          "Hyprland socket.";
+            qCWarning(lcHypr) << "Hyprland socket directory does not exist. Unable to connect to Hyprland socket.";
             return;
         }
     }
@@ -62,7 +63,7 @@ void HyprExtras::message(const QString& message) {
 
     makeRequest(message, [](bool success, const QByteArray& res) {
         if (!success) {
-            qWarning() << "HyprExtras::message: request error:" << QString::fromUtf8(res);
+            qCWarning(lcHypr) << "message: request error:" << QString::fromUtf8(res);
         }
     });
 }
@@ -74,7 +75,7 @@ void HyprExtras::batchMessage(const QStringList& messages) {
 
     makeRequest("[[BATCH]]" + messages.join(";"), [](bool success, const QByteArray& res) {
         if (!success) {
-            qWarning() << "HyprExtras::batchMessage: request error:" << QString::fromUtf8(res);
+            qCWarning(lcHypr) << "batchMessage: request error:" << QString::fromUtf8(res);
         }
     });
 }
@@ -84,16 +85,18 @@ void HyprExtras::applyOptions(const QVariantHash& options) {
         return;
     }
 
-    QString request = "[[BATCH]]";
+    QString request;
+    request.reserve(12 + options.size() * 40);
+    request += QLatin1String("[[BATCH]]");
     for (auto it = options.constBegin(); it != options.constEnd(); ++it) {
-        request += QString("keyword %1 %2;").arg(it.key(), it.value().toString());
+        request += QLatin1String("keyword ") + it.key() + QLatin1Char(' ') + it.value().toString() + QLatin1Char(';');
     }
 
     makeRequest(request, [this](bool success, const QByteArray& res) {
         if (success) {
             refreshOptions();
         } else {
-            qWarning() << "HyprExtras::applyOptions: request error" << QString::fromUtf8(res);
+            qCWarning(lcHypr) << "applyOptions: request error" << QString::fromUtf8(res);
         }
     });
 }
@@ -143,15 +146,15 @@ void HyprExtras::refreshDevices() {
 
 void HyprExtras::socketError(QLocalSocket::LocalSocketError error) const {
     if (!m_socketValid) {
-        qWarning() << "HyprExtras::socketError: unable to connect to Hyprland event socket:" << error;
+        qCWarning(lcHypr) << "socketError: unable to connect to Hyprland event socket:" << error;
     } else {
-        qWarning() << "HyprExtras::socketError: Hyprland event socket error:" << error;
+        qCWarning(lcHypr) << "socketError: Hyprland event socket error:" << error;
     }
 }
 
 void HyprExtras::socketStateChanged(QLocalSocket::LocalSocketState state) {
     if (state == QLocalSocket::UnconnectedState && m_socketValid) {
-        qWarning() << "HyprExtras::socketStateChanged: Hyprland event socket disconnected.";
+        qCWarning(lcHypr) << "socketStateChanged: Hyprland event socket disconnected.";
     }
 
     m_socketValid = state == QLocalSocket::ConnectedState;
@@ -204,7 +207,7 @@ HyprExtras::SocketPtr HyprExtras::makeRequest(
     });
 
     QObject::connect(socket.data(), &QLocalSocket::errorOccurred, this, [=](QLocalSocket::LocalSocketError err) {
-        qWarning() << "HyprExtras::makeRequest: error making request:" << err << "| request:" << request;
+        qCWarning(lcHypr) << "makeRequest: error making request:" << err << "| request:" << request;
         callback(false, {});
         socket->close();
     });
