@@ -1,26 +1,42 @@
 cmake_minimum_required(VERSION 3.19)
 
 if(NOT DEFINED VERSION)
-    execute_process(COMMAND git describe --tags --abbrev=0
+    execute_process(COMMAND git describe --tags --abbrev=0 --match v[0-9]*.[0-9]*.[0-9]*
         WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
         OUTPUT_VARIABLE VERSION
         OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
     )
 
     if("${VERSION}" STREQUAL "")
-        message(FATAL_ERROR "VERSION is not set and failed to get from git")
+        execute_process(COMMAND git rev-list --count HEAD
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+            OUTPUT_VARIABLE GIT_COMMIT_COUNT
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+        )
+
+        if("${GIT_COMMIT_COUNT}" STREQUAL "")
+            set(VERSION "0.0.0")
+        else()
+            set(VERSION "0.0.${GIT_COMMIT_COUNT}")
+        endif()
+
+        message(WARNING "No semantic git tag found, falling back to VERSION=${VERSION}")
     endif()
 endif()
 
 if(NOT DEFINED GIT_REVISION)
-    execute_process(COMMAND git rev-parse HEAD
+    execute_process(COMMAND git rev-parse --short=12 HEAD
         WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
         OUTPUT_VARIABLE GIT_REVISION
         OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
     )
 
     if("${GIT_REVISION}" STREQUAL "")
-        message(FATAL_ERROR "GIT_REVISION is not set and failed to get from git")
+        set(GIT_REVISION "unknown")
+        message(WARNING "Failed to determine git revision, falling back to GIT_REVISION=${GIT_REVISION}")
     endif()
 endif()
 

@@ -1,0 +1,32 @@
+name: Sync upstream tags
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 2 * * 0"
+
+jobs:
+  sync-tags:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Fetch upstream tags
+        run: |
+          git remote add upstream https://github.com/caelestia-dots/shell.git
+          git fetch upstream --tags
+
+      - name: Push missing semantic tags
+        run: |
+          set -euo pipefail
+          for tag in $(git tag --list 'v[0-9]*.[0-9]*.[0-9]*'); do
+            if [ -n "$(git ls-remote --tags origin "refs/tags/$tag")" ]; then
+              continue
+            fi
+            git push origin "refs/tags/$tag:refs/tags/$tag"
+          done
