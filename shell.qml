@@ -7,21 +7,30 @@ import "modules/drawers"
 import "modules/background"
 import "modules/areapicker"
 import "modules/lock"
+import QtQuick
 import Quickshell
 
 ShellRoot {
+    id: root
+
     settings.watchFiles: true
+    readonly property bool toolingMode: Quickshell.env("CAELESTIA_QML_TOOLING") === "1"
 
-    Background {}
-    Drawers {}
-    AreaPicker {}
-    Lock {
-        id: lock
-    }
+    Loader {
+        active: !root.toolingMode
+        sourceComponent: Item {
+            Background {}
+            Drawers {}
+            AreaPicker {}
+            Lock {
+                id: lock
+            }
 
-    Shortcuts {}
-    BatteryMonitor {}
-    IdleMonitors {
-        lock: lock
+            Shortcuts {}
+            BatteryMonitor {}
+            IdleMonitors {
+                lock: lock
+            }
+        }
     }
 }

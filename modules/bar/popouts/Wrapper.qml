@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls
 import Quickshell
 import Quickshell.Wayland
 import qs.components
@@ -17,6 +18,7 @@ Item {
     readonly property real nonAnimWidth: x > 0 || hasCurrent ? children.find(c => c.shouldBeActive)?.implicitWidth ?? content.implicitWidth : 0
     readonly property real nonAnimHeight: children.find(c => c.shouldBeActive)?.implicitHeight ?? content.implicitHeight
     readonly property Item current: (content.item as Content)?.current ?? null
+    readonly property int trayMenuDepth: ((current as StackView)?.depth ?? 0)
 
     property alias currentName: popoutState.currentName
     property real currentCenter

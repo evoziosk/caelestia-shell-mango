@@ -135,7 +135,7 @@ Variants {
             Item {
                 id: focusGrab
 
-                property bool active: (visibilities.launcher && Config.launcher.enabled) || (visibilities.session && Config.session.enabled) || (visibilities.sidebar && Config.sidebar.enabled) || (!Config.dashboard.showOnHover && visibilities.dashboard && Config.dashboard.enabled) || (panels.popouts.currentName.startsWith("traymenu") && Number(panels.popouts.current?.["depth"] ?? 0) > 1)
+                property bool active: (visibilities.launcher && Config.launcher.enabled) || (visibilities.session && Config.session.enabled) || (visibilities.sidebar && Config.sidebar.enabled) || (!Config.dashboard.showOnHover && visibilities.dashboard && Config.dashboard.enabled) || (panels.popouts.currentName.startsWith("traymenu") && panels.popouts.trayMenuDepth > 1)
                 // property var windows: [win]  // Not used in MangoWC
                 signal cleared()
                 

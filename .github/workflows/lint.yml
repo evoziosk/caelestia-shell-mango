@@ -27,7 +27,7 @@ jobs:
         run: |
           # Generate tooling
           touch .qmlls.ini
-          QT_QPA_PLATFORM=offscreen QML2_IMPORT_PATH="$PWD/build/qml:$QML2_IMPORT_PATH" timeout 2 qs -p .
+          CAELESTIA_QML_TOOLING=1 QT_QPA_PLATFORM=offscreen QML2_IMPORT_PATH="$PWD/build/qml:$QML2_IMPORT_PATH" timeout 2 qs -p .
 
           # Construct linter args
           set -l build_dir (grep -oP "(?<=buildDir=\")(.*)(?=\")" .qmlls.ini)
