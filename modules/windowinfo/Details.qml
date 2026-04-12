@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Layouts
-import Quickshell.Hyprland
 import qs.components
 import qs.services
 import qs.config

@@ -1,8 +1,6 @@
 pragma Singleton
 
 import qs.components.misc
-import qs.config
-import Caelestia
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland._ToplevelManagement
@@ -31,19 +29,19 @@ Singleton {
         readonly property string title: ToplevelManager.activeToplevel?.title ?? ""
         readonly property string appId: ToplevelManager.activeToplevel?.appId ?? ""
         readonly property string address: "0x0"
-        readonly property var workspace: focusedWorkspace
-        readonly property var monitor: focusedMonitor
+        readonly property var workspace: root.focusedWorkspace
+        readonly property var monitor: root.focusedMonitor
         
         readonly property var lastIpcObject: {
             const obj = {
                 title: ToplevelManager.activeToplevel?.title ?? "",
                 initialTitle: ToplevelManager.activeToplevel?.title ?? "",
                 initialClass: ToplevelManager.activeToplevel?.appId ?? "",
-                floating: focusedClientFloating,
-                fullscreen: focusedClientFullscreen ? 2 : 0,
-                at: [focusedClientX, focusedClientY],
-                size: [focusedClientWidth, focusedClientHeight],
-                workspace: { "id": activeTagNumber, "name": `tag ${activeTagNumber}` },
+                floating: root.focusedClientFloating,
+                fullscreen: root.focusedClientFullscreen ? 2 : 0,
+                at: [root.focusedClientX, root.focusedClientY],
+                size: [root.focusedClientWidth, root.focusedClientHeight],
+                workspace: { "id": root.activeTagNumber, "name": `tag ${root.activeTagNumber}` },
                 address: "0x0",
                 pid: -1,
                 xwayland: false,
@@ -70,7 +68,7 @@ Singleton {
         id: activeTagNumber,
         name: `tag ${activeTagNumber}`,
         lastIpcObject: {
-            windows: ToplevelManager.toplevels.length,  // Actual window count
+            windows: root.toplevels.values.length,  // Actual window count
             specialWorkspace: { name: "" }
         },
         monitor: focusedMonitor,
@@ -244,7 +242,7 @@ Singleton {
         id: tagStateProcess
         command: ["mmsg", "-g", "-t"]
         stdout: StdioCollector {
-            onStreamFinished: parseTagState(text)
+            onStreamFinished: root.parseTagState(text)
         }
     }
     
@@ -256,9 +254,9 @@ Singleton {
                 const lines = text.trim().split('\n');
                 for (const line of lines) {
                     if (line.includes(" title ")) {
-                        focusedClientTitle = line.split(" title ")[1] || "";
+                        root.focusedClientTitle = line.split(" title ")[1] || "";
                     } else if (line.includes(" appid ")) {
-                        focusedClientAppId = line.split(" appid ")[1] || "";
+                        root.focusedClientAppId = line.split(" appid ")[1] || "";
                     }
                 }
             }
@@ -277,10 +275,10 @@ Singleton {
                     if (parts.length >= 3) {
                         const prop = parts[1];
                         const value = parseInt(parts[2]);
-                        if (prop === "x") focusedClientX = value;
-                        else if (prop === "y") focusedClientY = value;
-                        else if (prop === "width") focusedClientWidth = value;
-                        else if (prop === "height") focusedClientHeight = value;
+                        if (prop === "x") root.focusedClientX = value;
+                        else if (prop === "y") root.focusedClientY = value;
+                        else if (prop === "width") root.focusedClientWidth = value;
+                        else if (prop === "height") root.focusedClientHeight = value;
                     }
                 }
             }
@@ -295,7 +293,7 @@ Singleton {
                 const lines = text.trim().split('\n');
                 for (const line of lines) {
                     if (line.includes(" floating ")) {
-                        focusedClientFloating = line.split(" floating ")[1] === "1";
+                        root.focusedClientFloating = line.split(" floating ")[1] === "1";
                     }
                 }
             }
@@ -310,7 +308,7 @@ Singleton {
                 const lines = text.trim().split('\n');
                 for (const line of lines) {
                     if (line.includes(" fullscreen ")) {
-                        focusedClientFullscreen = line.split(" fullscreen ")[1] === "1";
+                        root.focusedClientFullscreen = line.split(" fullscreen ")[1] === "1";
                     }
                 }
             }

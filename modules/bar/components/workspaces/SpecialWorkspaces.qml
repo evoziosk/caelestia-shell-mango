@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
 import qs.components
 import qs.components.effects
 import qs.services
@@ -91,11 +90,11 @@ Item {
         spacing: Appearance.spacing.normal
         interactive: false
 
-        currentIndex: model.values.findIndex(w => w.name === root.activeSpecial)
-        onCurrentIndexChanged: currentIndex = Qt.binding(() => model.values.findIndex(w => w.name === root.activeSpecial))
+        currentIndex: model.values.findIndex(w => w.name === root1.activeSpecial)
+        onCurrentIndexChanged: currentIndex = Qt.binding(() => model.values.findIndex(w => w.name === root1.activeSpecial))
 
         model: ScriptModel {
-            values: Hypr.workspaces.values.filter(w => w.name.startsWith("special:") && (!Config.bar.workspaces.perMonitorWorkspaces || w.monitor === root.monitor))
+            values: Hypr.workspaces.values.filter(w => w.name.startsWith("special:") && (!Config.bar.workspaces.perMonitorWorkspaces || w.monitor === root1.monitor))
         }
 
         preferredHighlightBegin: 0
