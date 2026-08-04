@@ -72,7 +72,7 @@ QtObject {
     }
 
     function monitorNames(): list<string> {
-        return monitors.values.map(e => e.name);
+        return monitors.map(e => e.name);
     }
 
     function monitorFor(screen): var {

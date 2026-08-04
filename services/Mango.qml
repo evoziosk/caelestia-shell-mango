@@ -61,7 +61,8 @@ Singleton {
         focused: true,
         lastIpcObject: {
             specialWorkspace: { name: "" }
-        }
+        },
+        activeWorkspace: focusedWorkspace
     }) // Current focused monitor
     
     readonly property var focusedWorkspace: ({
@@ -180,16 +181,11 @@ Singleton {
     }
 
     function monitorFor(screen): var {
-        // MangoWC doesn't have per-screen monitor info easily accessible via Wayland protocols
-        return {
-            name: focusedOutput,
-            id: 0,
-            focused: true,
-            lastIpcObject: {
-                specialWorkspace: { name: "" }
-            },
-            activeWorkspace: focusedWorkspace
-        };
+        // MangoWC doesn't have per-screen monitor info easily accessible via Wayland protocols;
+        // this is single-monitor-only, so return the same cached object as focusedMonitor
+        // rather than a fresh literal each call -- Visibilities.qml keys a Map by object
+        // identity, and a fresh object here would never match on lookup.
+        return root.focusedMonitor;
     }
 
     function reloadDynamicConfs(): void {
