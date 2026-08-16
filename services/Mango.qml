@@ -53,17 +53,20 @@ Singleton {
         }
     }
 
-    readonly property var focusedMonitor: ({
-        name: focusedOutput,
-        id: 0,
-        x: 0,
-        y: 0,
-        focused: true,
-        lastIpcObject: {
+    // Persistent object (not a property-var literal) so its identity stays stable across
+    // reads -- Visibilities.qml keys a Map by this object, and a fresh literal here would
+    // also form a binding loop with focusedWorkspace, which references this property back.
+    readonly property QtObject focusedMonitor: QtObject {
+        readonly property string name: root.focusedOutput
+        readonly property int id: 0
+        readonly property int x: 0
+        readonly property int y: 0
+        readonly property bool focused: true
+        readonly property var lastIpcObject: ({
             specialWorkspace: { name: "" }
-        },
-        activeWorkspace: focusedWorkspace
-    }) // Current focused monitor
+        })
+        readonly property var activeWorkspace: root.focusedWorkspace
+    } // Current focused monitor
     
     readonly property var focusedWorkspace: ({
         id: activeTagNumber,
