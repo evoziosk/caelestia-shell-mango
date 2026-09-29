@@ -59,8 +59,8 @@ Item {
             function getWsIdx(ws: int): int {
                 let i = ws - 1;
                 while (i < 0)
-                    i += shown;
-                return i % shown;
+                    i += root.shown;
+                return i % root.shown;
             }
 
             anchors.horizontalCenter: root.horizontalCenter

@@ -62,7 +62,7 @@ Singleton {
     readonly property var emptyIpcObject: root.buildIpcObject(null, root.activeTagNumber)
 
     readonly property QtObject focusedClient: QtObject {
-        readonly property var wayland: ToplevelManager.activeToplevel?.window ?? null
+        readonly property var wayland: ToplevelManager.activeToplevel
         readonly property string title: root.focusedToplevel?.title ?? ""
         readonly property string appId: root.focusedToplevel?.appId ?? ""
         readonly property string address: root.focusedAddress
@@ -200,8 +200,9 @@ Singleton {
             title: client?.title ?? "",
             appId: client?.appid ?? "",
             // Only the focused window is ever handed to ScreencopyView, and
-            // ToplevelManager already knows which one that is.
-            wayland: client?.is_focused ? ToplevelManager.activeToplevel?.window ?? null : null,
+            // ToplevelManager already knows which one that is. Toplevel exposes
+            // no `window` member, so the Toplevel itself is what gets passed on.
+            wayland: client?.is_focused ? ToplevelManager.activeToplevel : null,
             monitor: root.focusedMonitor,
             workspace: {
                 id: tag,
