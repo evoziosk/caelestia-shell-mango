@@ -17,13 +17,18 @@ StyledClippingRect {
     readonly property bool onSpecial: (Config.bar.workspaces.perMonitorWorkspaces ? Hypr.monitorFor(screen) : Hypr.focusedMonitor)?.lastIpcObject.specialWorkspace?.name !== ""
     readonly property int activeWsId: Config.bar.workspaces.perMonitorWorkspaces ? (Hypr.monitorFor(screen).activeWorkspace?.id ?? 1) : Hypr.activeWsId
 
+    // Don't offer more indicators than the compositor actually has tags, and
+    // never let the last group run past the end of the tag list.
+    readonly property int tagCount: Math.max(1, Hypr.workspaces.values.length)
+    readonly property int shown: Math.min(Math.max(1, Config.bar.workspaces.shown), tagCount)
+
     readonly property var occupied: {
         const occ = {};
         for (const ws of Hypr.workspaces.values)
             occ[ws.id] = ws.lastIpcObject.windows > 0;
         return occ;
     }
-    readonly property int groupOffset: Math.floor((activeWsId - 1) / Config.bar.workspaces.shown) * Config.bar.workspaces.shown
+    readonly property int groupOffset: Math.min(Math.floor((activeWsId - 1) / shown) * shown, Math.max(0, tagCount - shown))
 
     property real blur: onSpecial ? 1 : 0
 
@@ -57,6 +62,7 @@ StyledClippingRect {
                 workspaces: workspaces
                 occupied: root.occupied
                 groupOffset: root.groupOffset
+                shown: root.shown
             }
         }
 
@@ -69,7 +75,7 @@ StyledClippingRect {
             Repeater {
                 id: workspaces
 
-                model: Config.bar.workspaces.shown
+                model: root.shown
 
                 Workspace {
                     activeWsId: root.activeWsId
@@ -89,6 +95,7 @@ StyledClippingRect {
                 workspaces: workspaces
                 mask: layout
                 fullscreen: root.fullscreen
+                shown: root.shown
             }
         }
 
