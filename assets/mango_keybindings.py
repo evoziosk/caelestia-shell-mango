@@ -47,7 +47,7 @@ def describe(action, args, key):
                 if target == 'shortcuts':
                     names = {'showall':'Toggle all drawers', 'brightnessUp':'Increase screen brightness', 'brightnessDown':'Decrease screen brightness'}
                     return 'Shell', names.get(' '.join(arguments), ' '.join(arguments))
-                labels = {'windowRules':'Window rule manager', 'keybindings':'Keyboard shortcut sheet', 'lock':'Lock screen', 'nexus':'Open settings', 'gameMode':'Toggle game mode', 'idleInhibitor':'Toggle idle inhibition', 'notifs':'Clear notifications', 'picker':'Take screenshot', 'recorder':'Toggle recording', 'mpris':'Media', 'audio':'Audio'}
+                labels = {'windowRules':'Window rule manager', 'keybindings':'Keyboard shortcut sheet', 'lock':'Lock screen', 'nexus':'Open settings', 'gameMode':'Toggle game mode', 'idleInhibitor':'Toggle idle inhibition', 'notifs':'Clear notifications', 'picker':'Take screenshot', 'areazoom':'Area zoom', 'recorder':'Toggle recording', 'mpris':'Media', 'audio':'Audio'}
                 label = labels.get(target, target)
                 extra = {'openFreeze':' (frozen selection)', 'openClip':' to clipboard', 'openFreezeClip':' to clipboard (frozen)', 'next':'next track', 'previous':'previous track', 'playPause':'play / pause', 'stop':'stop', 'pause':'pause'}
                 if target in ('mpris', 'audio'):

@@ -33,6 +33,11 @@ StyledWindow {
     readonly property real shadowOpacity: 0.7 * (1 - fsTransitionProg)
     readonly property real borderLayoutThickness: hasFullscreen ? 0 : contentItem.Config.border.thickness
 
+    // The frame is opaque when transparency is disabled, which would cover the
+    // wallpaper's edges with a band of surface colour. Let the wallpaper fill
+    // the desktop edge to edge by dropping the frame bands in that case.
+    readonly property real frameOpacityFactor: contentItem.Config.background.wallpaperEnabled && !Colours.transparency.enabled ? 0 : 1
+
     property color surfaceColour: Colours.tPalette.m3surface
 
     readonly property int dragMaskPadding: {
@@ -183,9 +188,9 @@ StyledWindow {
             group: blobGroup
             radius: root.borderRounding
             borderLeft: bar.implicitWidth - anchors.margins - root.sdfBorderOffset
-            borderRight: root.borderThickness - anchors.margins - root.sdfBorderOffset
-            borderTop: root.borderThickness - anchors.margins - root.sdfBorderOffset
-            borderBottom: root.borderThickness - anchors.margins - root.sdfBorderOffset
+            borderRight: (root.borderThickness - anchors.margins - root.sdfBorderOffset) * root.frameOpacityFactor
+            borderTop: (root.borderThickness - anchors.margins - root.sdfBorderOffset) * root.frameOpacityFactor
+            borderBottom: (root.borderThickness - anchors.margins - root.sdfBorderOffset) * root.frameOpacityFactor
         }
 
         PanelBg {

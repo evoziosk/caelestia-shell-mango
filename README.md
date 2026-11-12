@@ -90,6 +90,27 @@ The shell provides the following features on MangoWC. See [compatibility and kno
 - ✅ Searchable keyboard shortcut sheet and Nexus settings
 - ✅ Runtime window rule manager on Super+Ctrl+R, with persistent rules and immediate Mango reloads
 - ✅ Game mode, keyboard indicators, and keyboard-change toasts
+- ✅ Area zoom magnifier
+
+### Area zoom
+
+Press **Super + Z** to zoom into a screen area. The screen dims with a
+crosshair cursor: drag a rectangle, or hover to snap to the window under the
+cursor and click it. A floating panel then shows the selected region magnified
+live, with scroll wheel or <kbd>+</kbd>/<kbd>−</kbd> zoom (1–8×, clamped to the
+screen), a draggable header, and a close button. Only the panel itself takes
+input, so the rest of the desktop stays usable while the zoom is open; the
+capture pauses automatically if the panel overlaps the magnified region, and
+Escape or Super+Z closes it.
+
+For a manually managed config, add:
+
+```ini
+bind=SUPER,z,spawn,qs ipc -c caelestia call areazoom toggle
+```
+
+IPC: `qs ipc -c caelestia call areazoom open|close|toggle`, plus
+`isOpen` and `setZoom <level>`.
 
 ### Keyboard shortcut sheet
 
