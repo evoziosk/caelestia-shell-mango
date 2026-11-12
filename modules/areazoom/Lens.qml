@@ -46,17 +46,33 @@ MouseArea {
     readonly property real headerHeight: 36
     readonly property int minRegionSize: 80
     readonly property int screenMargin: Tokens.padding.small
-    readonly property real maxContentW: screen.width * 0.9
-    // Keep the whole panel (content + header) within 90% of the screen
-    readonly property real fitZoom: Math.min(maxContentW / rw, (screen.height * 0.9 - headerHeight) / rh)
-    readonly property real maxZoom: Math.min(8, Math.max(fitZoom, 1))
-    readonly property real magnification: Math.min(Math.max(zoom, 1), Math.max(fitZoom, 1))
-    readonly property real lensW: rw * magnification
-    readonly property real contentH: rh * magnification
+    readonly property real maxZoom: 8
+    // Smallest magnification at which the whole region still fits the free
+    // slot the panel was placed in. Zooming past it keeps the panel the same
+    // size and shows a magnified portion of the region instead, so the panel
+    // never grows into (and recurses over) the sampled area.
+    property real slotFit: 1
+    // Never exceed the slot: past it the panel keeps its size and shows a
+    // magnified portion of the region instead, so it never grows into (and
+    // recurses over) the sampled area.
+    readonly property real panelScale: Math.max(Math.min(zoom, slotFit), Math.min(0.2, slotFit))
+    readonly property real magnification: Math.min(Math.max(zoom, 1), maxZoom)
+    readonly property real lensW: rw * panelScale
+    readonly property real contentH: rh * panelScale
     readonly property real lensH: contentH + headerHeight
+    // The portion of the region currently shown, centred on the region and
+    // clamped inside it. At or below slotFit it is the whole region.
+    readonly property real sourceW: Math.min(rw, rw * panelScale / magnification)
+    readonly property real sourceH: Math.min(rh, rh * panelScale / magnification)
+    readonly property point sourceOrigin: {
+        const x = Math.min(Math.max(rsx, rsx + rw / 2 - sourceW / 2), rsx + rw - sourceW);
+        const y = Math.min(Math.max(rsy, rsy + rh / 2 - sourceH / 2), rsy + rh - sourceH);
+        return Qt.point(x, y);
+    }
 
-    // The capture includes this window itself, so pause it while the panel
-    // overlaps the sampled region to avoid a recursive feedback loop.
+    // Whether the panel currently covers part of the sampled region. The
+    // capture stays live either way; resolveOverlap() moves the panel out
+    // when possible so the magnified view never shows the panel itself.
     readonly property bool lensOverSource: lensX < rsx + rw && lensX + lensW > rsx && lensY < rsy + rh && lensY + lensH > rsy
 
     property bool onClient
@@ -117,6 +133,7 @@ MouseArea {
         const pos = clampPos(lensX, lensY, lensW, lensH);
         lensX = pos.x;
         lensY = pos.y;
+        resolveOverlap();
     }
 
     function zoomBy(factor: real): void {
@@ -124,28 +141,87 @@ MouseArea {
         reclampLens();
     }
 
-    // Place the panel next to the selected region, falling back to
-    // below/above when there is no room on either side.
-    function placeLens(): void {
-        const gap = Tokens.padding.large;
-        let x = rsx + rw + gap;
-        if (x + lensW > screen.width - screenMargin)
-            x = rsx - gap - lensW;
+    // Shift the panel out of the sampled region (nearest side with room) so
+    // the live magnified view never shows the panel itself. If no side has
+    // room, leave it — the capture stays live either way.
+    function resolveOverlap(): void {
+        if (!lensOverSource)
+            return;
 
-        if (x >= screenMargin) {
-            lensX = x;
-            lensY = clampPos(lensX, rsy + rh / 2 - lensH / 2, lensW, lensH).y;
-        } else {
-            const below = clampPos(rsx + rw / 2 - lensW / 2, rsy + rh + gap, lensW, lensH);
-            if (below.y > rsy + rh) {
-                lensX = below.x;
-                lensY = below.y;
-            } else {
-                const above = clampPos(rsx + rw / 2 - lensW / 2, rsy - gap - lensH, lensW, lensH);
-                lensX = above.x;
-                lensY = above.y;
+        const gap = Tokens.padding.large;
+        const candidates = [
+            Qt.point(rsx + rw + gap, lensY),
+            Qt.point(rsx - gap - lensW, lensY),
+            Qt.point(lensX, rsy + rh + gap),
+            Qt.point(lensX, rsy - gap - lensH)
+        ];
+
+        let best = null;
+        let bestDist = Infinity;
+        for (const cand of candidates) {
+            const pos = clampPos(cand.x, cand.y, lensW, lensH);
+            const overlap = pos.x < rsx + rw && pos.x + lensW > rsx && pos.y < rsy + rh && pos.y + lensH > rsy;
+            if (overlap)
+                continue;
+            const dist = Math.abs(pos.x - lensX) + Math.abs(pos.y - lensY);
+            if (dist < bestDist) {
+                bestDist = dist;
+                best = pos;
             }
         }
+
+        if (best) {
+            lensX = best.x;
+            lensY = best.y;
+        }
+    }
+
+    // Pick the free slot (right/left/below/above of the region) that fits the
+    // largest panel and remember how big the panel may grow there.
+    function placeLens(): void {
+        const gap = Tokens.padding.large;
+        const fullH = screen.height - screenMargin * 2 - headerHeight;
+        const fullW = screen.width - screenMargin * 2;
+
+        const rightW = screen.width - screenMargin - (rsx + rw + gap);
+        const leftW = rsx - gap - screenMargin;
+        const belowH = screen.height - screenMargin - (rsy + rh + gap);
+        const aboveH = rsy - gap - screenMargin;
+
+        const slots = [
+            {
+                fit: rightW > 0 ? Math.min(rightW / rw, fullH / rh) : 0,
+                place: (w, h) => clampPos(rsx + rw + gap, rsy + rh / 2 - h / 2, w, h)
+            },
+            {
+                fit: leftW > 0 ? Math.min(leftW / rw, fullH / rh) : 0,
+                place: (w, h) => clampPos(rsx - gap - w, rsy + rh / 2 - h / 2, w, h)
+            },
+            {
+                fit: belowH > 0 ? Math.min(fullW / rw, belowH / rh) : 0,
+                place: (w, h) => clampPos(rsx + rw / 2 - w / 2, rsy + rh + gap, w, h)
+            },
+            {
+                fit: aboveH > 0 ? Math.min(fullW / rw, aboveH / rh) : 0,
+                place: (w, h) => clampPos(rsx + rw / 2 - w / 2, rsy - gap - h, w, h)
+            }
+        ];
+
+        let best = slots[0];
+        for (const slot of slots)
+            if (slot.fit > best.fit)
+                best = slot;
+
+        // Too small to be usable (region ~ whole screen): allow the panel to
+        // take its preferred size and overlap the region; the capture stays
+        // live either way.
+        if (best.fit <= 0 || best.fit * rw < 220 || best.fit * rh < 100)
+            best = { fit: maxZoom, place: (w, h) => clampPos(rsx + rw / 2 - w / 2, rsy + rh / 2 - h / 2, w, h) };
+
+        slotFit = best.fit;
+        const pos = best.place(lensW, lensH);
+        lensX = pos.x;
+        lensY = pos.y;
     }
 
     function completeSelection(): void {
@@ -168,6 +244,7 @@ MouseArea {
 
         zoom = Math.min(Math.max(zoom, 1), maxZoom);
         placeLens();
+        resolveOverlap();
         loader.activeScreen = screen.name;
         loader.activeLens = root;
     }
@@ -407,15 +484,15 @@ MouseArea {
 
                 asynchronous: true
                 anchors.fill: parent
-                active: lensBody.visible && !root.lensOverSource && !root.loader.closing
+                active: lensBody.visible && !root.loader.closing
 
                 sourceComponent: Item {
                     ScreencopyView {
                         id: capture
 
                         captureSource: root.screen
-                        x: -root.rsx * root.magnification
-                        y: -root.rsy * root.magnification
+                        x: -root.sourceOrigin.x * root.magnification
+                        y: -root.sourceOrigin.y * root.magnification
                         width: root.screen.width * root.magnification
                         height: root.screen.height * root.magnification
                     }
@@ -425,35 +502,6 @@ MouseArea {
                     FrameAnimation {
                         running: captureLoader.active
                         onTriggered: capture.captureFrame()
-                    }
-                }
-            }
-
-            StyledRect {
-                visible: root.lensOverSource
-                anchors.centerIn: parent
-                implicitWidth: pausedRow.implicitWidth + Tokens.padding.large * 2
-                implicitHeight: pausedRow.implicitHeight + Tokens.padding.small * 2
-
-                radius: Tokens.rounding.full
-                color: Colours.palette.m3surfaceContainer
-
-                Row {
-                    id: pausedRow
-
-                    anchors.centerIn: parent
-                    spacing: Tokens.spacing.small
-
-                    MaterialIcon {
-                        text: "pause"
-                        color: Colours.palette.m3onSurfaceVariant
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-
-                    StyledText {
-                        text: Tr.tr("Move the panel away to resume")
-                        color: Colours.palette.m3onSurfaceVariant
-                        anchors.verticalCenter: parent.verticalCenter
                     }
                 }
             }
@@ -484,12 +532,17 @@ MouseArea {
                 root.lensY = pos.y;
             }
 
+            onReleased: root.resolveOverlap()
+            onCanceled: root.resolveOverlap()
+
             StyledRect {
                 anchors.fill: parent
                 color: Colours.palette.m3surfaceContainerHigh
             }
 
             MaterialIcon {
+                id: zoomIcon
+
                 text: "zoom_in"
                 color: Colours.palette.m3primary
                 anchors.left: parent.left
@@ -506,6 +559,8 @@ MouseArea {
             }
 
             StyledText {
+                id: zoomLabel
+
                 text: `${Math.round(root.magnification * 100)}%`
                 color: Colours.palette.m3onSurfaceVariant
                 anchors.right: closeButton.left
@@ -513,26 +568,28 @@ MouseArea {
                 anchors.verticalCenter: parent.verticalCenter
             }
 
-            StateLayer {
+            Item {
                 id: closeButton
 
                 anchors.right: parent.right
                 anchors.rightMargin: Tokens.spacing.small
                 anchors.verticalCenter: parent.verticalCenter
+                width: Tokens.padding.extraLargeIncreased
+                height: width
 
-                implicitWidth: Tokens.padding.extraLargeIncreased
-                implicitHeight: implicitWidth
+                StateLayer {
+                    anchors.fill: parent
+                    radius: Tokens.rounding.full
+                    color: Colours.palette.m3onSurface
 
-                radius: Tokens.rounding.full
-                color: Colours.palette.m3onSurface
+                    onClicked: root.loader.close()
+                }
 
                 MaterialIcon {
                     text: "close"
                     color: Colours.palette.m3onSurface
                     anchors.centerIn: parent
                 }
-
-                onClicked: root.loader.close()
             }
         }
     }

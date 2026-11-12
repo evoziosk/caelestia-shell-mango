@@ -96,12 +96,13 @@ The shell provides the following features on MangoWC. See [compatibility and kno
 
 Press **Super + Z** to zoom into a screen area. The screen dims with a
 crosshair cursor: drag a rectangle, or hover to snap to the window under the
-cursor and click it. A floating panel then shows the selected region magnified
-live, with scroll wheel or <kbd>+</kbd>/<kbd>−</kbd> zoom (1–8×, clamped to the
-screen), a draggable header, and a close button. Only the panel itself takes
-input, so the rest of the desktop stays usable while the zoom is open; the
-capture pauses automatically if the panel overlaps the magnified region, and
-Escape or Super+Z closes it.
+cursor and click it. A floating panel then shows the selected region
+magnified **live** (not a frozen snapshot), with scroll wheel or
+<kbd>+</kbd>/<kbd>−</kbd> zoom (1–8×) and a draggable header. The panel is
+sized to fit beside the selection; zooming past that shows a magnified
+portion of the region instead, so the panel never covers the area it is
+magnifying. Only the panel itself takes input, so the rest of the desktop
+stays usable while the zoom is open, and Escape or Super+Z closes it.
 
 For a manually managed config, add:
 
